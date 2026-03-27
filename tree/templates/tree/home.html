@@ -1,0 +1,508 @@
+{% extends "tree/base.html" %}
+{% load static %}
+{% block title %}Home - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .home-stack {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .hero {
+    position: relative;
+    min-height: 76vh;
+    border-radius: 30px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    box-shadow: var(--shadow);
+  }
+  .hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  .hero-slide.active {
+    opacity: 1;
+  }
+  .hero-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(8, 31, 35, 0.76) 0%, rgba(8, 31, 35, 0.38) 42%, rgba(8, 31, 35, 0.08) 100%);
+    display: flex;
+    align-items: end;
+  }
+  .hero-content {
+    max-width: 760px;
+    padding: 2rem 2rem 2.6rem;
+    color: #ffffff;
+  }
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.14);
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(2.8rem, 6vw, 5.6rem);
+    line-height: 0.93;
+    letter-spacing: -0.05em;
+    color: #ffffff;
+  }
+  .hero h1 span {
+    color: #bdf4f7;
+  }
+  .hero p {
+    max-width: 620px;
+    margin: 0 0 1.5rem;
+    color: rgba(255,255,255,0.9);
+    font-size: 1.08rem;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+  }
+  .hero-actions .btn-secondary {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.28);
+    color: #ffffff;
+    backdrop-filter: blur(8px);
+  }
+  .hero-actions .btn-secondary:hover {
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+  }
+  .hero-dots {
+    position: absolute;
+    left: 2rem;
+    bottom: 1.2rem;
+    display: flex;
+    gap: 0.55rem;
+    z-index: 3;
+  }
+  .hero-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(255,255,255,0.45);
+    padding: 0;
+    cursor: pointer;
+  }
+  .hero-dot.active {
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.16);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .stat-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 1.4rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .stat-label {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .section-shell {
+    display: grid;
+    gap: 1rem;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+  }
+  .section-copy {
+    max-width: 620px;
+  }
+
+  .about-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 420px);
+    gap: 2rem;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    align-items: center;
+  }
+  .about-card h3 {
+    color: var(--cream);
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .about-card p {
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  .about-intro {
+    max-width: 560px;
+  }
+  .about-cta {
+    margin-top: 1.5rem;
+  }
+  .about-image {
+    width: 100%;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #f7fcfc;
+  }
+  .about-image img {
+    width: 100%;
+    height: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .event-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .event-image {
+    width: 100%;
+    height: 220px;
+    background: #eef8f8;
+  }
+  .event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .event-body {
+    padding: 1.25rem;
+  }
+  .event-tag {
+    display: inline-block;
+    margin-bottom: 0.9rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(19,153,166,0.1);
+    color: var(--gold-dim);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .event-card h3 {
+    color: var(--cream);
+    font-size: 1.15rem;
+    margin-bottom: 0.4rem;
+  }
+  .event-date {
+    color: var(--gold-dim);
+    font-size: 0.86rem;
+    font-weight: 700;
+    margin-bottom: 0.7rem;
+  }
+  .event-card p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .mentors-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 320px));
+    justify-content: center;
+    gap: 1rem;
+  }
+  .mentor-card {
+    display: block;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .mentor-photo {
+    height: 320px;
+    background: #eef8f8;
+  }
+  .mentor-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    background: #eef8f8;
+  }
+  .mentor-body {
+    padding: 1rem 1rem 1.15rem;
+    text-align: center;
+  }
+  .mentor-body h3 {
+    color: var(--cream);
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+  }
+  .mentor-role {
+    color: var(--gold-dim);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-dim);
+  }
+  .empty-state .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  .empty-state h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+
+  @media (max-width: 1100px) {
+    .events-grid,
+    .mentors-grid {
+      grid-template-columns: 1fr;
+    }
+    .mentor-photo {
+      height: 320px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .hero {
+      min-height: 68vh;
+    }
+    .hero-overlay {
+      background: linear-gradient(180deg, rgba(8, 31, 35, 0.18) 0%, rgba(8, 31, 35, 0.78) 100%);
+    }
+    .hero-content {
+      padding: 1.4rem 1.25rem 2rem;
+    }
+    .hero-dots {
+      left: 1.25rem;
+      bottom: 1rem;
+    }
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    .about-card {
+      grid-template-columns: 1fr;
+      padding: 1.4rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-stack">
+  <section class="hero" id="heroSlider">
+    <div class="hero-slide active">
+      <img src="{% static 'tree/home/hero-1.jpg' %}" alt="Family hero image 1">
+    </div>
+    <div class="hero-slide">
+      <img src="{% static 'tree/home/hero-2.jpg' %}" alt="Family hero image 2">
+    </div>
+    <div class="hero-slide">
+      <img src="{% static 'tree/home/hero-3.jpg' %}" alt="Family hero image 3">
+    </div>
+
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <div class="hero-kicker">Irimpan Kudumba Yogam</div>
+        <h1>One Family.<br><span>Shared Heritage.</span></h1>
+        <p>Welcome to the digital home of Irimpan Kudumba Yogam, where family memories, shared values, and generational bonds are preserved with dignity and love.</p>
+        <div class="hero-actions">
+          <a href="{% url 'tree' %}" class="btn btn-primary">View Tree</a>
+          <a href="{% url 'gallery' %}" class="btn btn-secondary">Explore Gallery</a>
+          {% if request.user.is_authenticated and request.user.is_staff %}
+          <a href="{% url 'person_add' %}" class="btn btn-secondary">Add Member</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-dots">
+      <button class="hero-dot active" type="button" aria-label="Slide 1"></button>
+      <button class="hero-dot" type="button" aria-label="Slide 2"></button>
+      <button class="hero-dot" type="button" aria-label="Slide 3"></button>
+    </div>
+  </section>
+
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num">{{ total }}</div>
+      <div class="stat-label">Family Members</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ people|length }}</div>
+      <div class="stat-label">Profiles</div>
+    </div>
+  </section>
+
+  <section class="section-shell">
+    <div class="section-head">
+      <div class="section-copy" style="max-width:none;text-align:center;width:100%;">
+        <h2 class="section-title">About Us</h2>
+        <p class="section-sub">A simple introduction to the purpose and spirit of Irimpan Kudumba Yogam.</p>
+      </div>
+    </div>
+    <article class="about-card">
+      <div class="about-intro">
+        <h3>About</h3>
+        <p>Together we grow stronger as one family. Irimpan Kudumba Yogam is a space to preserve our heritage, encourage unity, and pass our values forward to the coming generation with love, respect, and shared responsibility.</p>
+        <div class="about-cta">
+          <a href="{% url 'about' %}" class="btn btn-primary">Read More</a>
+        </div>
+      </div>
+      <div class="about-image">
+        <img src="{% static 'tree/home/hero-2.jpg' %}" alt="Irimpan Kudumba Yogam family">
+      </div>
+    </article>
+  </section>
+
+  <section class="section-shell">
+    <div class="section-head">
+      <div class="section-copy">
+        <h2 class="section-title">Upcoming Events</h2>
+        <p class="section-sub">Gatherings that keep the family connected throughout the year.</p>
+      </div>
+    </div>
+    <div class="events-grid">
+      {% for event in upcoming_events %}
+      <article class="event-card">
+        <div class="event-image">
+          {% if event.image %}
+          <img src="{{ event.image.url }}" alt="{{ event.title }}">
+          {% elif forloop.counter == 1 %}
+          <img src="{% static 'tree/home/hero-1.jpg' %}" alt="{{ event.title }}">
+          {% elif forloop.counter == 2 %}
+          <img src="{% static 'tree/home/hero-2.jpg' %}" alt="{{ event.title }}">
+          {% else %}
+          <img src="{% static 'tree/home/hero-3.jpg' %}" alt="{{ event.title }}">
+          {% endif %}
+        </div>
+        <div class="event-body">
+          <span class="event-tag">{{ event.tag }}</span>
+          <h3>{{ event.title }}</h3>
+          <div class="event-date">{{ event.event_date }}</div>
+          <p>{{ event.description }}</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section-shell">
+    <div class="section-head">
+      <div class="section-copy">
+        <h2 class="section-title">Our Mentors</h2>
+        <p class="section-sub">Elders and guiding figures whose lives continue to inspire the family.</p>
+      </div>
+    </div>
+    <div class="mentors-grid">
+      {% for mentor in mentors %}
+      <article class="mentor-card">
+        <div class="mentor-photo">
+          <img src="{% static mentor.image %}" alt="{{ mentor.name }}">
+        </div>
+        <div class="mentor-body">
+          <h3>{{ mentor.name }}</h3>
+          <div class="mentor-role">{{ mentor.years }}</div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if not people %}
+  <div class="empty-state">
+    <div class="icon">+</div>
+    <h2>Start Your Family Tree</h2>
+    <p>Add the first family member to begin building your tree.</p>
+    <br>
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <a href="{% url 'person_add' %}" class="btn btn-primary">Add First Member</a>
+    {% else %}
+    <a href="{% url 'admin_login' %}" class="btn btn-secondary">Admin Login</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const slider = document.getElementById('heroSlider');
+    if (!slider) return;
+
+    const slides = Array.from(slider.querySelectorAll('.hero-slide'));
+    const dots = Array.from(slider.querySelectorAll('.hero-dot'));
+    if (slides.length < 2) return;
+
+    let index = 0;
+
+    function show(nextIndex) {
+      index = nextIndex;
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+    }
+
+    dots.forEach((dot, i) => dot.addEventListener('click', () => show(i)));
+
+    setInterval(() => {
+      show((index + 1) % slides.length);
+    }, 3500);
+  })();
+</script>
+{% endblock %}

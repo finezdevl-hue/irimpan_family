@@ -1,0 +1,164 @@
+{% extends "tree/base.html" %}
+{% block title %}{{ house.family_name }} Family - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .family-detail-wrap {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .family-detail-grid {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .summary-card,
+  .members-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .detail-badge {
+    display: inline-flex;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    background: var(--surface2);
+    color: var(--gold-dim);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .summary-card h1 {
+    color: var(--cream);
+    font-size: 1.6rem;
+    margin-bottom: 0.3rem;
+  }
+  .summary-sub {
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+  .summary-list {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .summary-row strong {
+    color: var(--gold-dim);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .summary-row span {
+    color: var(--cream);
+    text-align: right;
+  }
+  .members-card h2 {
+    color: var(--cream);
+    margin-bottom: 1rem;
+    font-size: 1.35rem;
+  }
+  .member-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.9rem;
+  }
+  .member-tile {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.95rem;
+  }
+  .member-tile a {
+    color: var(--cream);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .member-tile a:hover {
+    color: var(--gold-dim);
+  }
+  .member-tile p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-top: 0.35rem;
+    line-height: 1.5;
+  }
+  @media (max-width: 860px) {
+    .family-detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="family-detail-wrap">
+  <div>
+    <a href="{% url 'family_page' %}" style="color:var(--text-dim);text-decoration:none;font-size:0.92rem;">&larr; Back to Family Page</a>
+  </div>
+
+  <div class="family-detail-grid">
+    <section class="summary-card">
+      <span class="detail-badge">{% if house.is_separate_home %}Separate Home{% else %}Family Home{% endif %}</span>
+      <h1>{{ house.family_name }} Family</h1>
+      <p class="summary-sub">Guardian: {{ house.guardian.full_name }}{% if house.partner %} &amp; {{ house.partner.full_name }}{% endif %}</p>
+
+      <div class="summary-list">
+        <div class="summary-row">
+          <strong>Guardian</strong>
+          <span>{{ house.guardian.full_name }}</span>
+        </div>
+        {% if house.partner %}
+        <div class="summary-row">
+          <strong>Partner</strong>
+          <span>{{ house.partner.full_name }}</span>
+        </div>
+        {% endif %}
+        <div class="summary-row">
+          <strong>Residents</strong>
+          <span>{{ house.resident_count }}</span>
+        </div>
+        {% if house.guardian.current_address %}
+        <div class="summary-row">
+          <strong>Address</strong>
+          <span>{{ house.guardian.current_address|linebreaksbr }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="members-card">
+      <h2>Household Members</h2>
+      <div class="member-grid">
+        {% for member in house.members %}
+        <article class="member-tile">
+          <a href="{{ member.get_absolute_url }}">{{ member.full_name }}</a>
+          <p>{{ member.get_gender_display }}</p>
+          {% if member.birth_date or member.birth_place %}
+          <p>
+            {% if member.birth_date %}Born: {{ member.birth_date }}{% endif %}
+            {% if member.birth_date and member.birth_place %}<br>{% endif %}
+            {% if member.birth_place %}Place: {{ member.birth_place }}{% endif %}
+          </p>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

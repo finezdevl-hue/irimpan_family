@@ -1,0 +1,25 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}{{ action }} Event - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">{{ action }} Event</h1>
+    <p>Manage event records in the custom admin panel.</p>
+  </div>
+</div>
+<form method="post" enctype="multipart/form-data" class="card">
+  {% csrf_token %}
+  {% for field in form %}
+  <div class="form-group">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+  </div>
+  {% endfor %}
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">{{ action }} Event</button>
+    <a href="{% url 'admin_events' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Admin Panel - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Dashboard</h1>
+    <p>Overview of members and events in the custom admin panel.</p>
+  </div>
+</div>
+
+<div class="admin-stats">
+  <div class="admin-stat">
+    <span>Total Members</span>
+    <strong>{{ people_count }}</strong>
+  </div>
+  <div class="admin-stat">
+    <span>Total Events</span>
+    <strong>{{ event_count }}</strong>
+  </div>
+  <div class="admin-stat">
+    <span>Gallery Photos</span>
+    <strong>{{ gallery_count }}</strong>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="admin-head">
+  <div><h2 class="section-title">Recent Members</h2></div>
+  <a href="{% url 'admin_member_add' %}" class="btn btn-primary">Add Member</a>
+</div>
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead><tr><th>Name</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for person in recent_people %}
+      <tr>
+        <td>{{ person.full_name }}</td>
+        <td class="admin-actions"><a href="{% url 'admin_member_edit' person.pk %}" class="btn btn-secondary">Edit</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="2">No members found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+<div class="admin-head">
+  <div><h2 class="section-title">Recent Events</h2></div>
+  <a href="{% url 'admin_event_add' %}" class="btn btn-primary">Add Event</a>
+</div>
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead><tr><th>Title</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for event in recent_events %}
+      <tr>
+        <td>{{ event.title }}</td>
+        <td>{{ event.event_date }}</td>
+        <td class="admin-actions"><a href="{% url 'admin_event_edit' event.pk %}" class="btn btn-secondary">Edit</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No events found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+<div class="admin-head">
+  <div><h2 class="section-title">Recent Gallery Photos</h2></div>
+  <a href="{% url 'admin_gallery_add' %}" class="btn btn-primary">Add Photo</a>
+</div>
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead><tr><th>Title</th><th>Event</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for item in recent_gallery %}
+      <tr>
+        <td>{{ item.title }}</td>
+        <td>{{ item.event_name }}</td>
+        <td class="admin-actions"><a href="{% url 'admin_gallery_edit' item.pk %}" class="btn btn-secondary">Edit</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No gallery photos found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

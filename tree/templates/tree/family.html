@@ -1,0 +1,82 @@
+{% extends "tree/base.html" %}
+{% block title %}Family - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .family-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .house-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
+    gap: 1.25rem;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  .house-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .house-badge {
+    display: inline-flex;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    background: var(--surface2);
+    color: var(--gold-dim);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .house-card h3 {
+    color: var(--cream);
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+  }
+  .house-sub {
+    color: var(--text-dim);
+    font-size: 0.92rem;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-band">
+  <h1 class="section-title">Family Homes</h1>
+  <p class="section-sub">Choose a family home to view its full household details.</p>
+</section>
+
+<section class="family-stats">
+  <article class="info-card">
+    <h3>Total Homes</h3>
+    <p class="section-title" style="font-size:2rem;margin:0;">{{ total_families }}</p>
+  </article>
+  <article class="info-card">
+    <h3>Total Members</h3>
+    <p class="section-title" style="font-size:2rem;margin:0;">{{ people|length }}</p>
+  </article>
+</section>
+
+<section class="house-grid">
+  {% for house in households %}
+  <a href="{% url 'family_detail' house.house_key %}" class="house-card" style="text-decoration:none;">
+    <span class="house-badge">{% if house.is_separate_home %}Separate Home{% else %}Family Home{% endif %}</span>
+    <h3>{{ house.guardian.full_name }}</h3>
+    <p class="house-sub">{{ house.family_name }} Family</p>
+    <span class="btn btn-secondary">View Details</span>
+  </a>
+  {% empty %}
+  <article class="info-card">
+    <h3>No Homes Yet</h3>
+    <p>Add members to build the first family home.</p>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

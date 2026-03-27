@@ -1,0 +1,758 @@
+[
+  {
+    "model": "tree.person",
+    "pk": 1,
+    "fields": {
+      "first_name": "George",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "1940-03-15",
+      "death_date": "2010-11-20",
+      "birth_place": "London, UK",
+      "bio": "Family patriarch. Retired engineer who loved gardening and documenting family history.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 2,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 2,
+    "fields": {
+      "first_name": "Margaret",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1943-07-22",
+      "death_date": null,
+      "birth_place": "Dublin, Ireland",
+      "bio": "Matriarch of the Anderson family. Retired schoolteacher and keeper of stories.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 1,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 3,
+    "fields": {
+      "first_name": "Robert",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "1965-05-10",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Eldest son. Calm, practical, and always organizing reunions.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": 13,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 4,
+    "fields": {
+      "first_name": "Claire",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1966-01-30",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Architect with a love of old churches and sketchbooks.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": 14,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 5,
+    "fields": {
+      "first_name": "Michael",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "1968-09-14",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Runs a neighborhood bakery and remembers every birthday.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": 15,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 6,
+    "fields": {
+      "first_name": "Helen",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1970-03-08",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Community nurse known for her steady kindness.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 7,
+    "fields": {
+      "first_name": "David",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "1972-12-19",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Mechanical technician who can fix nearly anything.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": 16,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 8,
+    "fields": {
+      "first_name": "Sarah",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1974-06-11",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Choir leader with a bright laugh and endless energy.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 9,
+    "fields": {
+      "first_name": "Thomas",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "1976-11-05",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "History teacher who takes the youngest cousins to museums.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": 17,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 10,
+    "fields": {
+      "first_name": "Laura",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1978-08-17",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Owns a flower shop and sends handwritten notes to everyone.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 11,
+    "fields": {
+      "first_name": "Daniel",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "1980-02-09",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Photographer who documents every major family event.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": 18,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 12,
+    "fields": {
+      "first_name": "Emma",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1982-04-27",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Youngest daughter and a literature professor.",
+      "photo": "photos/download.jpg",
+      "father": 1,
+      "mother": 2,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 13,
+    "fields": {
+      "first_name": "Susan",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1968-09-03",
+      "death_date": null,
+      "birth_place": "Manchester, UK",
+      "bio": "Nurse. Wife of Robert Anderson.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 3,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 14,
+    "fields": {
+      "first_name": "Adrian",
+      "last_name": "Clarke",
+      "gender": "M",
+      "birth_date": "1964-10-12",
+      "death_date": null,
+      "birth_place": "Bristol, UK",
+      "bio": "Urban planner and husband of Claire.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 4,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 15,
+    "fields": {
+      "first_name": "Nina",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1970-07-21",
+      "death_date": null,
+      "birth_place": "Leeds, UK",
+      "bio": "Primary school teacher and wife of Michael.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 5,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 16,
+    "fields": {
+      "first_name": "Priya",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1974-01-16",
+      "death_date": null,
+      "birth_place": "Birmingham, UK",
+      "bio": "Accountant and steady partner to David.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 7,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 17,
+    "fields": {
+      "first_name": "Rachel",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1977-05-29",
+      "death_date": null,
+      "birth_place": "Liverpool, UK",
+      "bio": "Museum curator and wife of Thomas.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 9,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 18,
+    "fields": {
+      "first_name": "Maya",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1983-09-09",
+      "death_date": null,
+      "birth_place": "Oxford, UK",
+      "bio": "Documentary producer and wife of Daniel.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 11,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 19,
+    "fields": {
+      "first_name": "James",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "1990-02-14",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Son of Robert and Susan. Civil engineer.",
+      "photo": "photos/download.jpg",
+      "father": 3,
+      "mother": 13,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 20,
+    "fields": {
+      "first_name": "Emily",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1993-08-25",
+      "death_date": null,
+      "birth_place": "London, UK",
+      "bio": "Daughter of Robert and Susan. Medical student turned pediatrician.",
+      "photo": "photos/download.jpg",
+      "father": 3,
+      "mother": 13,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 21,
+    "fields": {
+      "first_name": "Oliver",
+      "last_name": "Clarke",
+      "gender": "M",
+      "birth_date": "1991-05-02",
+      "death_date": null,
+      "birth_place": "Bath, UK",
+      "bio": "Designer with a quiet sense of humor.",
+      "photo": "photos/download.jpg",
+      "father": 14,
+      "mother": 4,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 22,
+    "fields": {
+      "first_name": "Grace",
+      "last_name": "Clarke",
+      "gender": "F",
+      "birth_date": "1994-12-18",
+      "death_date": null,
+      "birth_place": "Bath, UK",
+      "bio": "Musician and daughter of Claire and Adrian.",
+      "photo": "photos/download.jpg",
+      "father": 14,
+      "mother": 4,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 23,
+    "fields": {
+      "first_name": "Ethan",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "1995-04-09",
+      "death_date": null,
+      "birth_place": "Leeds, UK",
+      "bio": "Chef and oldest child of Michael and Nina.",
+      "photo": "photos/download.jpg",
+      "father": 5,
+      "mother": 15,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 24,
+    "fields": {
+      "first_name": "Chloe",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1998-07-30",
+      "death_date": null,
+      "birth_place": "Leeds, UK",
+      "bio": "Teacher and middle child of Michael and Nina.",
+      "photo": "photos/download.jpg",
+      "father": 5,
+      "mother": 15,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 25,
+    "fields": {
+      "first_name": "Lucas",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "2001-10-15",
+      "death_date": null,
+      "birth_place": "Leeds, UK",
+      "bio": "University student and youngest child of Michael and Nina.",
+      "photo": "photos/download.jpg",
+      "father": 5,
+      "mother": 15,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 26,
+    "fields": {
+      "first_name": "Aarav",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "2000-03-20",
+      "death_date": null,
+      "birth_place": "Birmingham, UK",
+      "bio": "Software developer and son of David and Priya.",
+      "photo": "photos/download.jpg",
+      "father": 7,
+      "mother": 16,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 27,
+    "fields": {
+      "first_name": "Meera",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "2004-11-08",
+      "death_date": null,
+      "birth_place": "Birmingham, UK",
+      "bio": "Daughter of David and Priya. Loves debate and books.",
+      "photo": "photos/download.jpg",
+      "father": 7,
+      "mother": 16,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 28,
+    "fields": {
+      "first_name": "Noah",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "2003-06-01",
+      "death_date": null,
+      "birth_place": "York, UK",
+      "bio": "Son of Thomas and Rachel. Amateur astronomer.",
+      "photo": "photos/download.jpg",
+      "father": 9,
+      "mother": 17,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 29,
+    "fields": {
+      "first_name": "Lily",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "2005-09-13",
+      "death_date": null,
+      "birth_place": "York, UK",
+      "bio": "Daughter of Thomas and Rachel. Keen on painting.",
+      "photo": "photos/download.jpg",
+      "father": 9,
+      "mother": 17,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 30,
+    "fields": {
+      "first_name": "Sofia",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "2008-01-22",
+      "death_date": null,
+      "birth_place": "York, UK",
+      "bio": "Youngest of Thomas and Rachel's children.",
+      "photo": "photos/download.jpg",
+      "father": 9,
+      "mother": 17,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 31,
+    "fields": {
+      "first_name": "Ivy",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "2010-04-04",
+      "death_date": null,
+      "birth_place": "Oxford, UK",
+      "bio": "Daughter of Daniel and Maya with a love of cameras.",
+      "photo": "photos/download.jpg",
+      "father": 11,
+      "mother": 18,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 32,
+    "fields": {
+      "first_name": "Henry",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "2012-08-19",
+      "death_date": null,
+      "birth_place": "Oxford, UK",
+      "bio": "Son of Daniel and Maya. Always curious.",
+      "photo": "photos/download.jpg",
+      "father": 11,
+      "mother": 18,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 33,
+    "fields": {
+      "first_name": "Anna",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "1991-11-11",
+      "death_date": null,
+      "birth_place": "Cambridge, UK",
+      "bio": "Teacher and spouse of James.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 19,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 34,
+    "fields": {
+      "first_name": "Benjamin",
+      "last_name": "Anderson",
+      "gender": "M",
+      "birth_date": "2014-03-05",
+      "death_date": null,
+      "birth_place": "Cambridge, UK",
+      "bio": "Son of James and Anna, starting the fourth generation branch.",
+      "photo": "photos/download.jpg",
+      "father": 19,
+      "mother": 33,
+      "spouse": 35,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 35,
+    "fields": {
+      "first_name": "Mia",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "2014-09-28",
+      "death_date": null,
+      "birth_place": "Norwich, UK",
+      "bio": "Spouse of Benjamin with a love of science fairs.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 34,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 36,
+    "fields": {
+      "first_name": "Charlotte",
+      "last_name": "Anderson",
+      "gender": "F",
+      "birth_date": "2036-06-18",
+      "death_date": null,
+      "birth_place": "Cambridge, UK",
+      "bio": "Daughter of Benjamin and Mia representing generation five.",
+      "photo": "photos/download.jpg",
+      "father": 34,
+      "mother": 35,
+      "spouse": 37,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 37,
+    "fields": {
+      "first_name": "Leo",
+      "last_name": "Patel",
+      "gender": "M",
+      "birth_date": "2035-12-09",
+      "death_date": null,
+      "birth_place": "Leicester, UK",
+      "bio": "Spouse of Charlotte and part of the long demo descendant chain.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 36,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 38,
+    "fields": {
+      "first_name": "Daniel",
+      "last_name": "Patel",
+      "gender": "M",
+      "birth_date": "2058-01-14",
+      "death_date": null,
+      "birth_place": "Cambridge, UK",
+      "bio": "Son of Charlotte and Leo, extending the family to generation six.",
+      "photo": "photos/download.jpg",
+      "father": 37,
+      "mother": 36,
+      "spouse": 39,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 39,
+    "fields": {
+      "first_name": "Eva",
+      "last_name": "Patel",
+      "gender": "F",
+      "birth_date": "2059-04-22",
+      "death_date": null,
+      "birth_place": "Oxford, UK",
+      "bio": "Spouse of Daniel Patel and parent in generation six.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 38,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 40,
+    "fields": {
+      "first_name": "Noah",
+      "last_name": "Patel",
+      "gender": "M",
+      "birth_date": "2082-08-30",
+      "death_date": null,
+      "birth_place": "Oxford, UK",
+      "bio": "Seventh generation descendant in the demo tree.",
+      "photo": "photos/download.jpg",
+      "father": 38,
+      "mother": 39,
+      "spouse": 41,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 41,
+    "fields": {
+      "first_name": "Ava",
+      "last_name": "Morgan",
+      "gender": "F",
+      "birth_date": "2083-05-17",
+      "death_date": null,
+      "birth_place": "Cardiff, UK",
+      "bio": "Spouse of Noah Patel in the future branch of the demo tree.",
+      "photo": "photos/download.jpg",
+      "father": null,
+      "mother": null,
+      "spouse": 40,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "tree.person",
+    "pk": 42,
+    "fields": {
+      "first_name": "Elena",
+      "last_name": "Patel",
+      "gender": "F",
+      "birth_date": "2106-02-02",
+      "death_date": null,
+      "birth_place": "Cardiff, UK",
+      "bio": "Eighth generation descendant, added so the demo reaches eight full generations.",
+      "photo": "photos/download.jpg",
+      "father": 40,
+      "mother": 41,
+      "spouse": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  }
+]

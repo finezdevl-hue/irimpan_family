@@ -1,0 +1,46 @@
+# Sample Portrait Mapping
+
+Place real human portrait files in media/photos using these exact filenames:
+
+ 1 | George Anderson | george_anderson.jpg
+ 2 | Margaret Anderson | margaret_anderson.jpg
+ 3 | Robert Anderson | robert_anderson.jpg
+ 4 | Claire Anderson | claire_anderson.jpg
+ 5 | Michael Anderson | michael_anderson.jpg
+ 6 | Helen Anderson | helen_anderson.jpg
+ 7 | David Anderson | david_anderson.jpg
+ 8 | Sarah Anderson | sarah_anderson.jpg
+ 9 | Thomas Anderson | thomas_anderson.jpg
+10 | Laura Anderson | laura_anderson.jpg
+11 | Daniel Anderson | daniel_anderson.jpg
+12 | Emma Anderson | emma_anderson.jpg
+13 | Susan Anderson | susan_anderson.jpg
+14 | Adrian Clarke | adrian_clarke.jpg
+15 | Nina Anderson | nina_anderson.jpg
+16 | Priya Anderson | priya_anderson.jpg
+17 | Rachel Anderson | rachel_anderson.jpg
+18 | Maya Anderson | maya_anderson.jpg
+19 | James Anderson | james_anderson.jpg
+20 | Emily Anderson | emily_anderson.jpg
+21 | Oliver Clarke | oliver_clarke.jpg
+22 | Grace Clarke | grace_clarke.jpg
+23 | Ethan Anderson | ethan_anderson.jpg
+24 | Chloe Anderson | chloe_anderson.jpg
+25 | Lucas Anderson | lucas_anderson.jpg
+26 | Aarav Anderson | aarav_anderson.jpg
+27 | Meera Anderson | meera_anderson.jpg
+28 | Noah Anderson | noah_anderson.jpg
+29 | Lily Anderson | lily_anderson.jpg
+30 | Sofia Anderson | sofia_anderson.jpg
+31 | Ivy Anderson | ivy_anderson.jpg
+32 | Henry Anderson | henry_anderson.jpg
+33 | Anna Anderson | anna_anderson.jpg
+34 | Benjamin Anderson | benjamin_anderson.jpg
+35 | Mia Anderson | mia_anderson.jpg
+36 | Charlotte Anderson | charlotte_anderson.jpg
+37 | Leo Patel | leo_patel.jpg
+38 | Daniel Patel | daniel_patel.jpg
+39 | Eva Patel | eva_patel.jpg
+40 | Noah Patel | noah_patel.jpg
+41 | Ava Morgan | ava_morgan.jpg
+42 | Elena Patel | elena_patel.jpg

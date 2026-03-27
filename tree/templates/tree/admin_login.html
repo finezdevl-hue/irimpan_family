@@ -1,0 +1,29 @@
+{% extends "tree/base.html" %}
+{% block title %}Admin Login - Family Tree{% endblock %}
+
+{% block content %}
+<section class="hero-band" style="max-width:640px;margin-left:auto;margin-right:auto;">
+  <h1 class="section-title">Admin Login</h1>
+  <p class="section-sub">Only admin accounts can sign in here and access the management dashboard.</p>
+</section>
+
+<div class="card" style="max-width:640px;margin:0 auto;">
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="message" style="margin-bottom:1rem;">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+    {% endif %}
+    <div class="form-group">
+      <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
+      {{ form.username }}
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
+      {{ form.password }}
+    </div>
+    <button type="submit" class="btn btn-primary">Login to Admin</button>
+  </form>
+</div>
+{% endblock %}

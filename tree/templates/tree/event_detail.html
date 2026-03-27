@@ -1,0 +1,180 @@
+{% extends "tree/base.html" %}
+{% block title %}{{ event.title }} - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .event-detail-wrap {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .back-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.92rem;
+  }
+  .event-detail-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .event-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .event-detail-image {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0.75rem;
+  }
+  .event-detail-image img {
+    width: 100%;
+    height: 340px;
+    object-fit: contain;
+    display: block;
+    border-radius: 12px;
+  }
+  .event-detail-copy h1 {
+    color: var(--cream);
+    font-size: 2rem;
+    line-height: 1.15;
+    margin-bottom: 0.85rem;
+  }
+  .detail-tag {
+    display: inline-block;
+    background: var(--surface2);
+    color: var(--gold-dim);
+    border-radius: 999px;
+    padding: 0.28rem 0.75rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.9rem;
+  }
+  .detail-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .detail-meta-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.9rem;
+  }
+  .detail-meta-card span {
+    display: block;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3rem;
+  }
+  .detail-meta-card strong {
+    color: var(--cream);
+    font-size: 0.98rem;
+    line-height: 1.4;
+  }
+  .detail-description {
+    color: var(--text);
+    line-height: 1.8;
+    font-size: 0.96rem;
+    white-space: pre-line;
+  }
+  .related-events {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+  }
+  .related-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+  }
+  .related-card h3 {
+    color: var(--cream);
+    font-size: 1rem;
+    margin-bottom: 0.45rem;
+  }
+  .related-card p {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  @media (max-width: 860px) {
+    .event-detail-grid {
+      grid-template-columns: 1fr;
+    }
+    .event-detail-image img {
+      height: 260px;
+    }
+  }
+  @media (max-width: 640px) {
+    .detail-meta {
+      grid-template-columns: 1fr;
+    }
+    .event-detail-copy h1 {
+      font-size: 1.6rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="event-detail-wrap">
+  <a href="{% url 'events' %}" class="back-link">&larr; Back to Upcoming Events</a>
+
+  <section class="event-detail-card">
+    <div class="event-detail-grid">
+      {% if event.image %}
+      <div class="event-detail-image">
+        <img src="{{ event.image.url }}" alt="{{ event.title }}">
+      </div>
+      {% endif %}
+
+      <div class="event-detail-copy">
+        {% if event.tag %}
+        <span class="detail-tag">{{ event.tag }}</span>
+        {% endif %}
+        <h1>{{ event.title }}</h1>
+
+        <div class="detail-meta">
+          <div class="detail-meta-card">
+            <span>Date</span>
+            <strong>{{ event.event_date|date:"F d, Y" }}</strong>
+          </div>
+          <div class="detail-meta-card">
+            <span>Location</span>
+            <strong>{{ event.location|default:"To be announced" }}</strong>
+          </div>
+        </div>
+
+        <div class="detail-description">{{ event.description }}</div>
+      </div>
+    </div>
+  </section>
+
+  {% if other_events %}
+  <section>
+    <h2 class="section-title" style="margin-bottom: 1rem;">More Events</h2>
+    <div class="related-events">
+      {% for other in other_events %}
+      <a href="{{ other.get_absolute_url }}" class="related-card">
+        <h3>{{ other.title }}</h3>
+        <p>{{ other.event_date|date:"F d, Y" }}{% if other.location %} | {{ other.location }}{% endif %}</p>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

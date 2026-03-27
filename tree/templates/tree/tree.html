@@ -1,0 +1,586 @@
+{% extends "tree/base.html" %}
+{% block title %}Tree View — Family Tree{% endblock %}
+{% block extra_css %}
+<style>
+  .tree-page { margin: -2rem -1.5rem; display: flex; flex-direction: column; height: calc(100vh - 64px); }
+
+  .tree-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .tree-toolbar h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--cream);
+    font-size: 1rem;
+    margin-right: auto;
+  }
+  .tool-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tool-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  .legend {
+    display: flex; gap: 1rem; align-items: center;
+    font-size: 0.75rem; color: var(--text-dim);
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.35rem; }
+  .legend-line { width: 24px; height: 2px; }
+  .ll-parent { background: #c9a84c; }
+  .ll-spouse { background: transparent; border-top: 2px dashed #c06090; height: 0; }
+
+  /* CANVAS */
+  #tree-canvas {
+    flex: 1; overflow: hidden; cursor: grab; position: relative;
+    background-color: var(--bg);
+    background-image: linear-gradient(rgba(185, 162, 118, 0.22) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(185, 162, 118, 0.22) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  #tree-canvas:active { cursor: grabbing; }
+
+  #tree-svg {
+    position: absolute; top: 0; left: 0;
+    overflow: visible; transform-origin: 0 0;
+  }
+
+  /* NODE CARDS — rendered inside foreignObject */
+  .node-card {
+    width: 150px; box-sizing: border-box;
+    background: #fffdf8; border-radius: 12px;
+    padding: 10px 10px 8px; text-align: center;
+    cursor: pointer; position: relative; overflow: hidden;
+    border: 2px solid #d8ccb6;
+    font-family: 'Lato', sans-serif;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    user-select: none; -webkit-user-select: none;
+  }
+  .node-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .node-card.male   { border-color: #2a4f6a; }
+  .node-card.male::before   { background: #4a7fa8; }
+  .node-card.female { border-color: #6a2a4f; }
+  .node-card.female::before { background: #a84a7f; }
+  .node-card:hover  { border-color: #c9a84c !important; box-shadow: 0 0 22px rgba(201,168,76,0.35); }
+  .node-card.selected { border-color: #c9a84c !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.2); }
+  .node-card.deceased { opacity: 0.68; }
+
+  .node-photo {
+    width: 50px; height: 50px; border-radius: 50%;
+    margin: 0 auto 6px; background: #f3ecdd;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; border: 2px solid #d8ccb6; overflow: hidden;
+  }
+  .node-card.male   .node-photo { border-color: #4a7fa8; }
+  .node-card.female .node-photo { border-color: #a84a7f; }
+  .node-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .node-name {
+    font-family: 'Playfair Display', serif; font-size: 0.78rem;
+    color: #2f2414; line-height: 1.25; margin-bottom: 2px;
+  }
+  .node-years { font-size: 0.67rem; color: #8b7753; }
+
+  /* SVG LINES */
+  .line-drop   { stroke: #c9a84c; stroke-width: 2; fill: none; stroke-linecap: round; }
+  .line-hbar   { stroke: #c9a84c; stroke-width: 2; fill: none; stroke-linecap: round; }
+  .line-spouse { stroke: #c06090; stroke-width: 2; fill: none; stroke-dasharray: 6 4; stroke-linecap: round; }
+  .couple-dot  { fill: #c06090; }
+
+  /* SIDE PANEL */
+  .detail-panel {
+    position: fixed; right: -360px; top: 64px; bottom: 0; width: 340px;
+    background: var(--surface); border-left: 1px solid var(--border);
+    overflow-y: auto; transition: right 0.3s ease; z-index: 200;
+  }
+  .detail-panel.open { right: 0; }
+  .panel-inner { padding: 1.25rem; }
+  .panel-close {
+    float: right; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); width: 28px; height: 28px; border-radius: 50%;
+    cursor: pointer; font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .panel-avatar {
+    width: 88px; height: 88px; border-radius: 50%; margin: 0.5rem auto 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.8rem; border: 3px solid var(--border); overflow: hidden;
+    background: var(--surface2);
+  }
+  .panel-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .panel-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--cream); text-align: center; }
+  .panel-sub  { text-align: center; color: var(--text-dim); font-size: 0.83rem; margin-bottom: 0.75rem; }
+  .panel-row  {
+    display: flex; justify-content: space-between;
+    padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.86rem;
+  }
+  .panel-key { color: var(--text-dim); }
+  .panel-val { color: var(--cream); text-align: right; max-width: 60%; }
+  .panel-bio { color: var(--text); font-size: 0.85rem; line-height: 1.6; margin-top: 0.75rem; }
+  .panel-btns { display: flex; gap: 0.6rem; margin-top: 1rem; }
+  .panel-btns a { flex: 1; text-align: center; }
+
+  /* EMPTY */
+  .empty-state {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    text-align: center; color: var(--text-dim);
+  }
+  .empty-state .icon { font-size: 3.5rem; margin-bottom: 1rem; display: block; }
+
+  @media (max-width: 640px) {
+    .detail-panel { width: 100%; right: -100%; }
+    .legend { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tree-page">
+  <div class="tree-toolbar">
+    <h2>🌲 Family Tree</h2>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-line ll-parent"></div>Parent–child</div>
+      <div class="legend-item"><div class="legend-line ll-spouse"></div>Couple</div>
+    </div>
+    <button class="tool-btn" onclick="zoom(1.2)">＋ Zoom</button>
+    <button class="tool-btn" onclick="zoom(0.8)">－ Zoom</button>
+    <button class="tool-btn" onclick="fitView()">⊡ Fit</button>
+    <button class="tool-btn" onclick="rerender()">⟳ Reset</button>
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <a href="{% url 'person_add' %}" class="tool-btn" style="text-decoration:none;color:var(--gold);border-color:var(--gold-dim);">＋ Add</a>
+    {% endif %}
+  </div>
+
+  <div id="tree-canvas">
+    <svg id="tree-svg"></svg>
+    <div class="empty-state" id="emptyMsg" style="display:none">
+      <span class="icon">🌱</span>
+      <p>No family members yet.</p><br>
+      {% if request.user.is_authenticated and request.user.is_staff %}
+      <a href="{% url 'person_add' %}" class="btn btn-primary" style="display:inline-flex;">＋ Add First Member</a>
+      {% else %}
+      <a href="{% url 'admin_login' %}" class="btn btn-secondary" style="display:inline-flex;">Admin Login</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="detail-panel" id="detailPanel">
+  <div class="panel-inner" id="panelInner"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ══════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════ */
+const NW       = 150;    // node width
+const NH       = 110;    // node height
+const CGAP     = 28;     // gap between couple nodes
+const SGAP     = 44;     // gap between sibling groups
+const GENGAP   = 120;    // vertical gap between generations
+const SVG_NS   = 'http://www.w3.org/2000/svg';
+
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let nodes  = {};   // id → node
+let edges  = [];
+let pos    = {};   // id → {x,y}
+let svgEl, canvas;
+let scale = 1, px = 0, py = 0;
+let panning = false, ps = {x:0,y:0};
+
+/* ══════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  canvas = document.getElementById('tree-canvas');
+  svgEl  = document.getElementById('tree-svg');
+  setupInteraction();
+  loadTree();
+});
+
+async function loadTree() {
+  const data = await fetch('{% url "tree_data" %}').then(r => r.json());
+  if (!data.nodes.length) { document.getElementById('emptyMsg').style.display='block'; return; }
+  data.nodes.forEach(n => nodes[n.id] = n);
+  edges = data.edges;
+  doLayout();
+  draw();
+  fitView();
+}
+
+function rerender() { pos={}; doLayout(); draw(); fitView(); }
+
+/* ══════════════════════════════════════════════
+   LAYOUT — generational family tree algorithm
+══════════════════════════════════════════════ */
+function doLayout() {
+  pos = {};
+
+  /* 1. Build maps */
+  const childrenOf = {};   // parentId → [childId]
+  const parentsOf  = {};   // childId  → [parentId]
+  const spouseOf   = {};   // id → id
+
+  Object.values(nodes).forEach(n => {
+    childrenOf[n.id] = [];
+    parentsOf[n.id]  = [];
+    if (n.spouse_id && nodes[n.spouse_id]) spouseOf[n.id] = n.spouse_id;
+  });
+  edges.forEach(e => {
+    if (e.type !== 'parent') return;
+    if (!childrenOf[e.from]) childrenOf[e.from] = [];
+    childrenOf[e.from].push(e.to);
+    if (!parentsOf[e.to])  parentsOf[e.to]  = [];
+    parentsOf[e.to].push(e.from);
+  });
+
+  /* 2. Build "family units": {left, right|null, children[]}
+        left/right are the IDs of the couple (or solo parent)     */
+  const units = [];
+  const inUnit = new Set();
+
+  // Couple units (pairs with at least one shared child OR explicit spouse)
+  const spousePairs = new Set();
+  Object.entries(spouseOf).forEach(([aStr, b]) => {
+    const a = +aStr;
+    const key = Math.min(a,b)+'-'+Math.max(a,b);
+    if (spousePairs.has(key)) return;
+    spousePairs.add(key);
+    const sharedKids = Object.keys(nodes)
+      .map(Number)
+      .filter(c => parentsOf[c] && parentsOf[c].includes(a) && parentsOf[c].includes(b));
+    const onlyA = childrenOf[a].filter(c => !sharedKids.includes(c));
+    const onlyB = childrenOf[b].filter(c => !sharedKids.includes(c));
+    units.push({ left: a, right: b, children: [...sharedKids, ...onlyA, ...onlyB] });
+    inUnit.add(a); inUnit.add(b);
+  });
+
+  // Solo parent units
+  Object.values(nodes).forEach(n => {
+    if (inUnit.has(n.id)) return;
+    if (childrenOf[n.id].length) {
+      units.push({ left: n.id, right: null, children: childrenOf[n.id] });
+      inUnit.add(n.id);
+    }
+  });
+
+  /* 3. Subtree width (px) */
+  const unitOf = {};  // personId → unit index
+  units.forEach((u, i) => { unitOf[u.left]=i; if(u.right!=null) unitOf[u.right]=i; });
+
+  const unitW = {};
+  function calcW(i) {
+    if (unitW[i] !== undefined) return unitW[i];
+    const u = units[i];
+    const ownW = u.right != null ? NW + CGAP + NW : NW;
+    if (!u.children.length) return (unitW[i] = ownW);
+    let cw = 0;
+    u.children.forEach((c, j) => {
+      cw += (unitOf[c] != null ? calcW(unitOf[c]) : NW);
+      if (j < u.children.length-1) cw += SGAP;
+    });
+    return (unitW[i] = Math.max(ownW, cw));
+  }
+  units.forEach((_,i) => calcW(i));
+
+  /* 4. Place top-down */
+  const placed = new Set();
+
+  function placeUnit(i, lx, gy) {
+    const u = units[i];
+    const tw = unitW[i];
+
+    // Place parents centred over their subtree
+    if (u.right != null) {
+      const pairW = NW + CGAP + NW;
+      const pl = lx + (tw - pairW) / 2;
+      if (!placed.has(u.left))  { pos[u.left]  = {x: pl,           y: gy}; placed.add(u.left); }
+      if (!placed.has(u.right)) { pos[u.right] = {x: pl+NW+CGAP,  y: gy}; placed.add(u.right); }
+    } else {
+      if (!placed.has(u.left)) { pos[u.left] = {x: lx+(tw-NW)/2, y: gy}; placed.add(u.left); }
+    }
+
+    if (!u.children.length) return;
+    const cy = gy + NH + GENGAP;
+    let cx = lx;
+    u.children.forEach(c => {
+      const ci = unitOf[c];
+      const cw = ci != null ? unitW[ci] : NW;
+      if (ci != null) placeUnit(ci, cx, cy);
+      else if (!placed.has(c)) { pos[c] = {x: cx+(cw-NW)/2, y: cy}; placed.add(c); }
+      cx += cw + SGAP;
+    });
+  }
+
+  // Roots = units whose parents are not children of any unit
+  const isChild = new Set(units.flatMap(u => u.children));
+  const roots = units
+    .map((u,i) => ({u,i}))
+    .filter(({u}) => !isChild.has(u.left) && (u.right==null || !isChild.has(u.right)));
+
+  let rx = 40;
+  roots.forEach(({i}) => { placeUnit(i, rx, 40); rx += unitW[i] + SGAP*2; });
+
+  // Orphans
+  let ox = rx;
+  Object.values(nodes).forEach(n => {
+    if (!placed.has(n.id)) { pos[n.id] = {x: ox, y: 40}; ox += NW + SGAP; }
+  });
+}
+
+/* ══════════════════════════════════════════════
+   DRAW
+══════════════════════════════════════════════ */
+function draw() {
+  svgEl.innerHTML = '';
+
+  // Bounding box
+  let mx=0, my=0;
+  Object.values(pos).forEach(p => { mx=Math.max(mx,p.x+NW+120); my=Math.max(my,p.y+NH+120); });
+  svgEl.setAttribute('width', mx);
+  svgEl.setAttribute('height', my);
+
+  drawLines();
+  drawCards();
+}
+
+function drawLines() {
+  const parentsOf = {};
+  edges.forEach(e => {
+    if (e.type!=='parent') return;
+    if (!parentsOf[e.to]) parentsOf[e.to] = [];
+    parentsOf[e.to].push(e.from);
+  });
+
+  // Group children by sorted parent key
+  const families = {};
+  Object.values(nodes).forEach(n => {
+    const ps = (parentsOf[n.id]||[]).slice().sort().join(',');
+    if (!ps) return;
+    if (!families[ps]) families[ps] = { parents: parentsOf[n.id], kids: [] };
+    families[ps].kids.push(n.id);
+  });
+
+  const drawnSpouse = new Set();
+
+  Object.values(families).forEach(({parents, kids}) => {
+    let ox, oy;  // origin point (bottom-centre of parent pair, or single parent)
+    if (parents.length >= 2) {
+      const p1 = pos[parents[0]], p2 = pos[parents[1]];
+      if (!p1 || !p2) return;
+      // Spouse bar
+      const key = Math.min(parents[0],parents[1])+'-'+Math.max(parents[0],parents[1]);
+      if (!drawnSpouse.has(key)) { drawnSpouse.add(key); drawSpouseLine(parents[0],parents[1]); }
+      // Origin = midpoint between parents' bottoms
+      const lp = p1.x<p2.x ? p1 : p2, rp = p1.x<p2.x ? p2 : p1;
+      ox = (lp.x + NW + rp.x) / 2;
+      oy = Math.max(p1.y,p2.y) + NH;
+    } else {
+      const p = pos[parents[0]]; if (!p) return;
+      ox = p.x + NW/2; oy = p.y + NH;
+    }
+    drawKidLines(ox, oy, kids);
+  });
+
+  // Spouse bars for couples without shared children
+  Object.values(nodes).forEach(n => {
+    if (!n.spouse_id || !nodes[n.spouse_id]) return;
+    const key = Math.min(n.id,n.spouse_id)+'-'+Math.max(n.id,n.spouse_id);
+    if (!drawnSpouse.has(key)) { drawnSpouse.add(key); drawSpouseLine(n.id, n.spouse_id); }
+  });
+}
+
+function drawSpouseLine(a, b) {
+  const pa = pos[a], pb = pos[b]; if (!pa||!pb) return;
+  const lp = pa.x<pb.x ? pa : pb;
+  const rp = pa.x<pb.x ? pb : pa;
+  const x1 = lp.x + NW, y1 = lp.y + NH/2;
+  const x2 = rp.x,      y2 = rp.y + NH/2;
+  addPath(`M${x1},${y1} L${x2},${y2}`, 'line-spouse');
+  // diamond midpoint
+  const mx=(x1+x2)/2, my=(y1+y2)/2;
+  const d = mkEl('polygon');
+  const r=5;
+  d.setAttribute('points',`${mx},${my-r} ${mx+r},${my} ${mx},${my+r} ${mx-r},${my}`);
+  d.setAttribute('class','couple-dot');
+  svgEl.appendChild(d);
+}
+
+function drawKidLines(ox, oy, kidIds) {
+  const kidMids = kidIds.map(id=>pos[id]).filter(Boolean).map(p=>({x:p.x+NW/2, y:p.y}));
+  if (!kidMids.length) return;
+  const dropY = oy + GENGAP * 0.42;
+  // Down from parent to horizontal level
+  addPath(`M${ox},${oy} L${ox},${dropY}`, 'line-drop');
+  if (kidMids.length===1) {
+    addPath(`M${ox},${dropY} L${kidMids[0].x},${kidMids[0].y}`, 'line-drop');
+  } else {
+    const lx = Math.min(...kidMids.map(c=>c.x));
+    const rx = Math.max(...kidMids.map(c=>c.x));
+    // Horizontal bar
+    addPath(`M${lx},${dropY} L${rx},${dropY}`, 'line-hbar');
+    // Vertical drop to each child
+    kidMids.forEach(c => addPath(`M${c.x},${dropY} L${c.x},${c.y}`, 'line-drop'));
+  }
+}
+
+function addPath(d, cls) {
+  const p = mkEl('path');
+  p.setAttribute('d', d); p.setAttribute('class', cls);
+  svgEl.appendChild(p);
+}
+
+function mkEl(tag) { return document.createElementNS(SVG_NS, tag); }
+
+/* ── Node cards ── */
+function drawCards() {
+  Object.values(nodes).forEach(n => {
+    const p = pos[n.id]; if (!p) return;
+    const fo = mkEl('foreignObject');
+    fo.setAttribute('x', p.x); fo.setAttribute('y', p.y);
+    fo.setAttribute('width', NW); fo.setAttribute('height', NH+20);
+
+    const gc = n.gender==='M' ? 'male' : n.gender==='F' ? 'female' : '';
+    const dec = !n.is_alive ? 'deceased' : '';
+    const ph = n.photo ? `<img src="${n.photo}" alt="">` : (n.gender==='M'?'👨':n.gender==='F'?'👩':'🧑');
+    const yr = n.birth_date
+      ? n.birth_date.slice(0,4) + (n.death_date?' – '+n.death_date.slice(0,4):'')
+      : '';
+    const cross = !n.is_alive ? '✝ ' : '';
+
+    fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml">
+      <div class="node-card ${gc} ${dec}" data-id="${n.id}">
+        <div class="node-photo">${ph}</div>
+        <div class="node-name">${cross}${n.name}</div>
+        ${yr ? `<div class="node-years">${yr}</div>` : ''}
+      </div></div>`;
+
+    fo.addEventListener('click', e => { e.stopPropagation(); openPanel(n); });
+    svgEl.appendChild(fo);
+  });
+}
+
+/* ══════════════════════════════════════════════
+   PAN & ZOOM
+══════════════════════════════════════════════ */
+function applyT() { svgEl.style.transform=`translate(${px}px,${py}px) scale(${scale})`; }
+
+function zoom(f) {
+  const r=canvas.getBoundingClientRect();
+  const cx=r.width/2, cy=r.height/2;
+  px = cx-(cx-px)*f; py = cy-(cy-py)*f;
+  scale = Math.min(Math.max(scale*f, 0.12), 4);
+  applyT();
+}
+
+function fitView() {
+  if (!Object.keys(pos).length) return;
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  Object.values(pos).forEach(p => { x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x+NW);y1=Math.max(y1,p.y+NH); });
+  const r=canvas.getBoundingClientRect(), pad=60;
+  const sx=(r.width-pad*2)/(x1-x0), sy=(r.height-pad*2)/(y1-y0);
+  scale = Math.min(sx,sy,1.1);
+  px = pad-x0*scale; py = pad-y0*scale;
+  applyT();
+}
+
+function setupInteraction() {
+  // Mouse pan
+  canvas.addEventListener('mousedown', e => {
+    const t = e.target;
+    const onBg = t===canvas||t===svgEl||t.tagName==='svg'||t.tagName==='path'||t.tagName==='polygon';
+    if (onBg) { panning=true; ps={x:e.clientX-px, y:e.clientY-py}; canvas.style.cursor='grabbing'; }
+  });
+  window.addEventListener('mousemove', e => {
+    if (!panning) return; px=e.clientX-ps.x; py=e.clientY-ps.y; applyT();
+  });
+  window.addEventListener('mouseup', () => { panning=false; canvas.style.cursor='grab'; });
+
+  // Touch pan
+  let tl=null;
+  canvas.addEventListener('touchstart', e=>{if(e.touches.length===1)tl={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+  canvas.addEventListener('touchmove',  e=>{
+    if(e.touches.length===1&&tl){px+=e.touches[0].clientX-tl.x;py+=e.touches[0].clientY-tl.y;tl={x:e.touches[0].clientX,y:e.touches[0].clientY};applyT();}
+  },{passive:true});
+  canvas.addEventListener('touchend', ()=>tl=null);
+
+  // Wheel zoom
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const f=e.deltaY<0?1.1:0.9;
+    const r=canvas.getBoundingClientRect();
+    const mx=e.clientX-r.left, my=e.clientY-r.top;
+    px=mx-(mx-px)*f; py=my-(my-py)*f;
+    scale=Math.min(Math.max(scale*f,0.12),4); applyT();
+  },{passive:false});
+
+  // Click canvas → close panel
+  canvas.addEventListener('click', e=>{
+    if(!e.target.closest('.node-card')) closePanel();
+  });
+}
+
+/* ══════════════════════════════════════════════
+   SIDE PANEL
+══════════════════════════════════════════════ */
+function openPanel(node) {
+  // Highlight node
+  document.querySelectorAll('.node-card').forEach(c=>c.classList.remove('selected'));
+  const card = document.querySelector(`.node-card[data-id="${node.id}"]`);
+  if (card) card.classList.add('selected');
+
+  const gc = {M:'Male',F:'Female',O:'Other'}[node.gender]||'';
+  const bc = node.gender==='M'?'var(--male)':node.gender==='F'?'var(--female)':'var(--border)';
+  const ph = node.photo
+    ? `<img src="${node.photo}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+    : (node.gender==='M'?'👨':node.gender==='F'?'👩':'🧑');
+
+  const rows = [
+    node.birth_date  && ['Born',  node.birth_date],
+    node.death_date  && ['Died',  node.death_date],
+    node.birth_place && ['Place', node.birth_place],
+    node.age!=null   && ['Age',   node.age+' yrs'],
+  ].filter(Boolean);
+
+  document.getElementById('panelInner').innerHTML = `
+    <button class="panel-close" onclick="closePanel()">✕</button>
+    <div class="panel-avatar" style="border-color:${bc}">${ph}</div>
+    <div class="panel-name">${node.name}</div>
+    <div class="panel-sub">${gc}${node.age?' &bull; Age '+node.age:''}${!node.is_alive?' &bull; <span style="color:#c08080">Deceased</span>':''}</div>
+    <hr class="divider" style="margin:0.5rem 0 1rem">
+    ${rows.map(([k,v])=>`<div class="panel-row"><span class="panel-key">${k}</span><span class="panel-val">${v}</span></div>`).join('')}
+    ${node.bio?`<p class="panel-bio">${node.bio}</p>`:''}
+    <div class="panel-btns">
+      <a href="${node.url}" class="btn btn-secondary">View Profile</a>
+      {% if request.user.is_authenticated and request.user.is_staff %}
+      <a href="${node.url}edit/" class="btn btn-primary">Edit</a>
+      {% endif %}
+    </div>`;
+
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.querySelectorAll('.node-card').forEach(c=>c.classList.remove('selected'));
+}
+</script>
+{% endblock %}

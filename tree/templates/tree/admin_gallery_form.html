@@ -1,0 +1,86 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}{{ action }} Gallery Photo - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .upload-note {
+    margin-top: 0.35rem;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">{{ action }} Gallery Photo</h1>
+    <p>Upload photos from completed family events for the public gallery page.</p>
+  </div>
+</div>
+<form method="post" enctype="multipart/form-data" class="card">
+  {% csrf_token %}
+  {% for field in form %}
+  {% if field.name == 'event_name' or field.name == 'event_date' %}
+  <div class="form-group">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.name == 'event_name' %}<small class="muted">This is filled automatically from the selected upcoming event.</small>{% endif %}
+    {% if field.name == 'event_date' %}<small class="muted">This is filled automatically from the selected upcoming event.</small>{% endif %}
+    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+  </div>
+  {% elif field.name == 'images' %}
+  <div class="form-group">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    <div class="upload-note">You can select more than one image here to create multiple gallery photos for the same event.</div>
+    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+  </div>
+  {% else %}
+  <div class="form-group">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+  </div>
+  {% endif %}
+  {% endfor %}
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">{{ action }} Photo</button>
+    <a href="{% url 'admin_gallery' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const eventSelect = document.getElementById('id_event');
+    const eventNameInput = document.getElementById('id_event_name');
+    const eventDateInput = document.getElementById('id_event_date');
+    if (!eventSelect || !eventNameInput || !eventDateInput) return;
+
+    function syncEventDetails() {
+      const option = eventSelect.options[eventSelect.selectedIndex];
+      if (!option || !option.value) {
+        eventNameInput.value = '';
+        eventDateInput.value = '';
+        return;
+      }
+      eventNameInput.value = option.text;
+      eventDateInput.value = option.dataset.eventDate || '';
+    }
+
+    Array.from(eventSelect.options).forEach(option => {
+      const match = option.text.match(/^(.*?)(?: \u2014 |\s\|\s)(\d{4}-\d{2}-\d{2})$/);
+      if (match) {
+        option.text = match[1];
+        option.dataset.eventDate = match[2];
+      }
+    });
+
+    eventSelect.addEventListener('change', syncEventDetails);
+    syncEventDetails();
+  })();
+</script>
+{% endblock %}

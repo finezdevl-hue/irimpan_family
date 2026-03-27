@@ -1,0 +1,21 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Delete Gallery Photo - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Delete Gallery Photo</h1>
+    <p>Remove this uploaded event photo from the public gallery.</p>
+  </div>
+</div>
+<div class="card">
+  <p>Are you sure you want to delete <strong>{{ item.title }}</strong>?</p>
+  <form method="post" style="margin-top:1rem;">
+    {% csrf_token %}
+    <div class="admin-actions">
+      <button type="submit" class="btn btn-danger">Delete Photo</button>
+      <a href="{% url 'admin_gallery' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "tree/base.html" %}
+{% block title %}All Members — Family Tree{% endblock %}
+{% block extra_css %}
+<style>
+  .search-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .search-bar input {
+    flex: 1;
+    min-width: 200px;
+  }
+  .people-table-wrap { overflow-x: auto; }
+  .people-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .people-table th {
+    text-align: left;
+    padding: 0.65rem 1rem;
+    color: var(--gold-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .people-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .people-table tr:hover td { background: var(--surface2); }
+  .people-table a { color: var(--gold-light); text-decoration: none; }
+  .people-table a:hover { text-decoration: underline; }
+  .tag {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+  .tag-m { background: rgba(74,127,168,0.15); color: var(--male); }
+  .tag-f { background: rgba(168,74,127,0.15); color: var(--female); }
+  .tag-o { background: var(--surface2); color: var(--text-dim); }
+  @media (max-width: 640px) {
+    .people-table .hide-sm { display: none; }
+  }
+</style>
+{% endblock %}
+{% block content %}
+<h1 class="section-title">👥 Family Members</h1>
+<p class="section-sub">{{ people|length }} member{{ people|length|pluralize }} in the family tree</p>
+
+<div class="search-bar">
+  <form method="get" style="display:flex;gap:0.75rem;flex:1;flex-wrap:wrap;">
+    <input class="form-input" name="q" value="{{ q }}" placeholder="Search by name..." style="flex:1;min-width:180px;">
+    <button type="submit" class="btn btn-secondary">Search</button>
+    {% if q %}<a href="{% url 'people_list' %}" class="btn btn-secondary">Clear</a>{% endif %}
+  </form>
+  {% if request.user.is_authenticated and request.user.is_staff %}
+  <a href="{% url 'person_add' %}" class="btn btn-primary">+ Add Member</a>
+  {% endif %}
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <div class="people-table-wrap">
+    <table class="people-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Gender</th>
+          <th class="hide-sm">Born</th>
+          <th class="hide-sm">Place</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for person in people %}
+        <tr>
+          <td>
+            <a href="{{ person.get_absolute_url }}">{{ person.full_name }}</a>
+          </td>
+          <td>
+            <span class="tag tag-{{ person.gender|lower }}">{{ person.get_gender_display }}</span>
+          </td>
+          <td class="hide-sm">{{ person.birth_date.year|default:"—" }}</td>
+          <td class="hide-sm">{{ person.birth_place|default:"—" }}</td>
+          <td>
+            {% if person.is_alive %}
+              <span style="color:#5ecf84;font-size:0.8rem;">Living</span>
+            {% else %}
+              <span style="color:#c08080;font-size:0.8rem;">†{{ person.death_date.year }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if request.user.is_authenticated and request.user.is_staff %}
+            <a href="{% url 'person_edit' person.pk %}" style="color:var(--gold-dim);">Edit</a>
+            {% else %}
+            <span style="color:var(--text-dim);">View only</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center;color:var(--text-dim);padding:2rem;">
+            {% if request.user.is_authenticated and request.user.is_staff %}
+            No members found. <a href="{% url 'person_add' %}" style="color:var(--gold);">Add one?</a>
+            {% else %}
+            No members found.
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

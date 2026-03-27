@@ -1,0 +1,154 @@
+{% extends "tree/base.html" %}
+{% block title %}Gallery - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .gallery-page {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .gallery-hero {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    padding: clamp(1.3rem, 3vw, 2rem);
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .gallery-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(19, 153, 166, 0.1);
+    color: var(--gold-dim);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .gallery-hero h1 {
+    color: var(--cream);
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    line-height: 1.08;
+    margin-bottom: 0.45rem;
+  }
+  .gallery-hero p {
+    color: var(--text-dim);
+    max-width: 620px;
+    margin: 0 auto;
+    font-size: 0.96rem;
+  }
+  .album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 380px));
+    gap: 1.5rem;
+    justify-content: start;
+  }
+  .album-card {
+    background: #ffffff;
+    border: 2px solid #d6e8ea;
+    border-radius: 0;
+    padding: 1.1rem 1.1rem 1.35rem;
+    box-shadow: 0 10px 24px rgba(16, 111, 121, 0.08);
+  }
+  .album-cover {
+    width: 100%;
+    aspect-ratio: 1.35 / 1;
+    overflow: hidden;
+    background: #f5fafb;
+    margin-bottom: 1rem;
+  }
+  .album-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .album-title {
+    text-align: center;
+    color: #404040;
+    font-size: 1.45rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
+  }
+  .album-date {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.86rem;
+    margin-bottom: 0.55rem;
+  }
+  .album-count {
+    display: block;
+    text-align: center;
+    color: var(--gold-dim);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .empty-gallery {
+    text-align: center;
+    padding: 2.5rem 1.2rem;
+    background: #ffffff;
+    border: 1px dashed var(--border);
+    border-radius: 22px;
+  }
+  .empty-gallery h3 {
+    color: var(--cream);
+    margin-bottom: 0.45rem;
+  }
+  .empty-gallery p {
+    color: var(--text-dim);
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  @media (max-width: 640px) {
+    .album-grid {
+      grid-template-columns: 1fr;
+      gap: 1.1rem;
+    }
+    .album-card {
+      padding: 0.9rem 0.9rem 1.1rem;
+    }
+    .album-title {
+      font-size: 1.1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gallery-page">
+  <section class="gallery-hero">
+    <span class="gallery-kicker">Event Gallery</span>
+    <h1>Family Event Albums</h1>
+    <p>Browse our completed events as clean photo albums, each shown with a featured cover image.</p>
+  </section>
+
+  {% if grouped_gallery %}
+  <div class="album-grid">
+    {% for group in grouped_gallery %}
+    <article class="album-card">
+      <div class="album-cover">
+        <img src="{{ group.photos.0.image.url }}" alt="{{ group.event_name }}">
+      </div>
+      <div class="album-title">{{ group.event_name }}</div>
+      {% if group.event_date %}
+      <div class="album-date">{{ group.event_date|date:"F d, Y" }}</div>
+      {% endif %}
+      <span class="album-count">{{ group.photos|length }} Photo{{ group.photos|length|pluralize }}</span>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <article class="empty-gallery">
+    <h3>No Event Photos Yet</h3>
+    <p>Upload completed event photos from the custom admin panel to build the gallery.</p>
+  </article>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,365 @@
+{% extends "tree/base.html" %}
+{% block title %}{{ person.full_name }} - Family Tree{% endblock %}
+{% block extra_css %}
+<style>
+  .profile-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 768px) {
+    .profile-layout { grid-template-columns: 1fr; }
+  }
+  .profile-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 1.25rem;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    border: 3px solid var(--border);
+    overflow: hidden;
+  }
+  .profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  {% if person.gender == 'M' %}.profile-avatar { border-color: var(--male); }{% endif %}
+  {% if person.gender == 'F' %}.profile-avatar { border-color: var(--female); }{% endif %}
+
+  .profile-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--cream);
+    margin-bottom: 0.25rem;
+  }
+  .profile-sub {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .info-val {
+    color: var(--cream);
+    text-align: right;
+  }
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .section-card h3 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    letter-spacing: 0.04em;
+  }
+  .rel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+  .rel-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem;
+    text-decoration: none;
+    text-align: center;
+    transition: border-color 0.2s;
+    display: block;
+  }
+  .rel-card:hover { border-color: var(--gold-dim); }
+  .rel-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    margin: 0 auto 0.5rem;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    overflow: hidden;
+  }
+  .rel-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .rel-name { font-size: 0.82rem; color: var(--cream); }
+  .rel-meta { font-size: 0.72rem; color: var(--text-dim); }
+  .alive-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(50, 200, 100, 0.15);
+    color: #5ecf84;
+    border: 1px solid rgba(50, 200, 100, 0.3);
+    margin-top: 0.5rem;
+  }
+  .deceased-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    background: rgba(150, 100, 100, 0.2);
+    color: #c08080;
+    border: 1px solid rgba(150, 100, 100, 0.3);
+    margin-top: 0.5rem;
+  }
+  .action-btns {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+  .bio-text {
+    color: var(--text);
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  .bio-text p,
+  .bio-text ul,
+  .bio-text ol {
+    margin-bottom: 0.85rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1rem;">
+  <a href="{% url 'home' %}" style="color:var(--text-dim);text-decoration:none;font-size:0.9rem;">&larr; Back to Home</a>
+</div>
+
+<div class="profile-layout">
+  <div>
+    <div class="profile-card">
+      <div class="profile-avatar">
+        {% if person.photo %}
+          <img src="{{ person.photo.url }}" alt="{{ person.full_name }}">
+        {% elif person.gender == 'M' %}
+          M
+        {% elif person.gender == 'F' %}
+          F
+        {% else %}
+          P
+        {% endif %}
+      </div>
+      <div class="profile-name">{{ person.full_name }}</div>
+      <div class="profile-sub">{{ person.get_gender_display }}</div>
+      {% if person.is_alive %}
+        <span class="alive-badge">Living</span>
+      {% else %}
+        <span class="deceased-badge">Deceased</span>
+      {% endif %}
+
+      <hr class="divider" style="margin:1.5rem 0;">
+
+      {% if person.birth_date %}
+      <div class="info-row">
+        <span class="info-key">Born</span>
+        <span class="info-val">{{ person.birth_date }}</span>
+      </div>
+      {% endif %}
+      {% if person.death_date %}
+      <div class="info-row">
+        <span class="info-key">Died</span>
+        <span class="info-val">{{ person.death_date }}</span>
+      </div>
+      {% endif %}
+      {% if person.age %}
+      <div class="info-row">
+        <span class="info-key">Age</span>
+        <span class="info-val">{{ person.age }}</span>
+      </div>
+      {% endif %}
+      {% if person.birth_place %}
+      <div class="info-row">
+        <span class="info-key">Place</span>
+        <span class="info-val">{{ person.birth_place }}</span>
+      </div>
+      {% endif %}
+      {% if person.blood_group %}
+      <div class="info-row">
+        <span class="info-key">Blood Group</span>
+        <span class="info-val">{{ person.blood_group }}</span>
+      </div>
+      {% endif %}
+      {% if person.living_separately %}
+      <div class="info-row">
+        <span class="info-key">Home</span>
+        <span class="info-val">Separate Home</span>
+      </div>
+      {% endif %}
+
+      {% if request.user.is_authenticated and request.user.is_staff %}
+      <div class="action-btns">
+        <a href="{% url 'person_edit' person.pk %}" class="btn btn-primary" style="flex:1;">Edit</a>
+        <a href="{% url 'person_delete' person.pk %}" class="btn btn-danger" style="flex:1;">Delete</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    {% if person.bio %}
+    <div class="section-card">
+      <h3>Biography</h3>
+      <div class="bio-text">{{ person.bio|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if person.email or person.phone or person.current_address %}
+    <div class="section-card">
+      <h3>Contact Details</h3>
+      {% if person.email %}
+      <div class="info-row">
+        <span class="info-key">Email</span>
+        <span class="info-val">{{ person.email }}</span>
+      </div>
+      {% endif %}
+      {% if person.phone %}
+      <div class="info-row">
+        <span class="info-key">Phone</span>
+        <span class="info-val">{{ person.phone }}</span>
+      </div>
+      {% endif %}
+      {% if person.current_address %}
+      <div class="info-row">
+        <span class="info-key">Address</span>
+        <span class="info-val">{{ person.current_address|linebreaksbr }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if person.father or person.mother %}
+    <div class="section-card">
+      <h3>Parents</h3>
+      <div class="rel-grid">
+        {% if person.father %}
+        <a href="{{ person.father.get_absolute_url }}" class="rel-card">
+          <div class="rel-avatar">{% if person.father.photo %}<img src="{{ person.father.photo.url }}" alt="{{ person.father.full_name }}">{% else %}M{% endif %}</div>
+          <div class="rel-name">{{ person.father.full_name }}</div>
+          <div class="rel-meta">Father</div>
+        </a>
+        {% endif %}
+        {% if person.mother %}
+        <a href="{{ person.mother.get_absolute_url }}" class="rel-card">
+          <div class="rel-avatar">{% if person.mother.photo %}<img src="{{ person.mother.photo.url }}" alt="{{ person.mother.full_name }}">{% else %}F{% endif %}</div>
+          <div class="rel-name">{{ person.mother.full_name }}</div>
+          <div class="rel-meta">Mother</div>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if person.spouse %}
+    <div class="section-card">
+      <h3>Spouse</h3>
+      <div class="rel-grid">
+        <a href="{{ person.spouse.get_absolute_url }}" class="rel-card">
+          <div class="rel-avatar">
+            {% if person.spouse.photo %}
+              <img src="{{ person.spouse.photo.url }}" alt="{{ person.spouse.full_name }}">
+            {% elif person.spouse.gender == 'M' %}
+              M
+            {% elif person.spouse.gender == 'F' %}
+              F
+            {% else %}
+              P
+            {% endif %}
+          </div>
+          <div class="rel-name">{{ person.spouse.full_name }}</div>
+          <div class="rel-meta">Spouse</div>
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if children %}
+    <div class="section-card">
+      <h3>Children ({{ children|length }})</h3>
+      <div class="rel-grid">
+        {% for child in children %}
+        <a href="{{ child.get_absolute_url }}" class="rel-card">
+          <div class="rel-avatar">
+            {% if child.photo %}
+              <img src="{{ child.photo.url }}" alt="{{ child.full_name }}">
+            {% elif child.gender == 'M' %}
+              M
+            {% elif child.gender == 'F' %}
+              F
+            {% else %}
+              P
+            {% endif %}
+          </div>
+          <div class="rel-name">{{ child.full_name }}</div>
+          <div class="rel-meta">{% if child.birth_date %}b. {{ child.birth_date.year }}{% endif %}</div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if siblings %}
+    <div class="section-card">
+      <h3>Siblings ({{ siblings|length }})</h3>
+      <div class="rel-grid">
+        {% for sib in siblings %}
+        <a href="{{ sib.get_absolute_url }}" class="rel-card">
+          <div class="rel-avatar">
+            {% if sib.photo %}
+              <img src="{{ sib.photo.url }}" alt="{{ sib.full_name }}">
+            {% elif sib.gender == 'M' %}
+              M
+            {% elif sib.gender == 'F' %}
+              F
+            {% else %}
+              P
+            {% endif %}
+          </div>
+          <div class="rel-name">{{ sib.full_name }}</div>
+          <div class="rel-meta">{% if sib.birth_date %}b. {{ sib.birth_date.year }}{% endif %}</div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -134,13 +134,13 @@ def contact(request):
 
 def admin_login(request):
     if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
-        return redirect('/admin/')
+        return redirect('admin_panel')
 
     form = AdminLoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         login(request, form.get_user())
         messages.success(request, 'Admin login successful.')
-        return redirect('/admin/')
+        return redirect('admin_panel')
     return render(request, 'tree/admin_login.html', {'form': form})
 
 

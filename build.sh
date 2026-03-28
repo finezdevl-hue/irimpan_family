@@ -9,9 +9,9 @@ python manage.py shell <<'PY'
 import os
 from django.contrib.auth import get_user_model
 
-username = os.getenv("DJANGO_SUPERUSER_USERNAME")
-email = os.getenv("DJANGO_SUPERUSER_EMAIL")
-password = os.getenv("DJANGO_SUPERUSER_PASSWORD")
+username = os.getenv("admin")
+email = os.getenv("admin@gmail.com")
+password = os.getenv("admin")
 
 if not (username and email and password):
     print("Skipping superuser creation. Set DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL, and DJANGO_SUPERUSER_PASSWORD to enable it.")

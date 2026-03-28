@@ -3,8 +3,13 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import user_passes_test
+from django.core.validators import validate_email
+from django.db import transaction
+from django.utils.dateparse import parse_date
 from .models import Person, Event, GalleryPhoto
-from .forms import PersonForm, AdminLoginForm, EventForm, GalleryPhotoForm
+from .forms import PersonForm, MemberCSVUploadForm, AdminLoginForm, EventForm, GalleryPhotoForm
+import csv
+import io
 import json
 
 
@@ -173,14 +178,33 @@ def admin_members(request):
 @admin_required
 def admin_member_add(request):
     if request.method == 'POST':
-        form = PersonForm(request.POST, request.FILES)
-        if form.is_valid():
-            person = form.save()
-            messages.success(request, f'{person.full_name} added successfully.')
-            return redirect('admin_members')
+        if 'import_csv' in request.POST:
+            csv_upload_form = MemberCSVUploadForm(request.POST, request.FILES)
+            form = PersonForm()
+            if csv_upload_form.is_valid():
+                try:
+                    created_count = _import_members_from_csv(csv_upload_form.cleaned_data['csv_file'])
+                except ValueError as exc:
+                    messages.error(request, str(exc))
+                else:
+                    messages.success(request, f'{created_count} member{"s" if created_count != 1 else ""} imported successfully.')
+                    return redirect('admin_members')
+        else:
+            form = PersonForm(request.POST, request.FILES)
+            csv_upload_form = MemberCSVUploadForm()
+            if form.is_valid():
+                person = form.save()
+                messages.success(request, f'{person.full_name} added successfully.')
+                return redirect('admin_members')
     else:
         form = PersonForm()
-    return render(request, 'tree/admin_member_form.html', {'form': form, 'action': 'Add'})
+        csv_upload_form = MemberCSVUploadForm()
+    return render(request, 'tree/admin_member_form.html', {
+        'form': form,
+        'action': 'Add',
+        'csv_upload_form': csv_upload_form,
+        'csv_expected_headers': _csv_expected_headers(),
+    })
 
 
 @admin_required
@@ -194,7 +218,7 @@ def admin_member_edit(request, pk):
             return redirect('admin_members')
     else:
         form = PersonForm(instance=person)
-    return render(request, 'tree/admin_member_form.html', {'form': form, 'action': 'Edit', 'person': person})
+    return render(request, 'tree/admin_member_form.html', {'form': form, 'action': 'Edit', 'person': person, 'csv_upload_form': MemberCSVUploadForm()})
 
 
 @admin_required
@@ -540,4 +564,193 @@ def _find_household(households, guardian_pk):
     for house in households:
         if house['guardian'].pk == guardian_pk:
             return house
+    return None
+
+
+def _csv_expected_headers():
+    return [
+        'key',
+        'first_name',
+        'last_name',
+        'gender',
+        'birth_date',
+        'death_date',
+        'birth_place',
+        'email',
+        'phone',
+        'blood_group',
+        'current_address',
+        'living_separately',
+        'bio',
+        'father_key',
+        'mother_key',
+        'spouse_key',
+        'father_id',
+        'mother_id',
+        'spouse_id',
+    ]
+
+
+def _import_members_from_csv(uploaded_file):
+    try:
+        text = uploaded_file.read().decode('utf-8-sig')
+    except UnicodeDecodeError as exc:
+        raise ValueError('CSV file must be UTF-8 encoded.') from exc
+
+    reader = csv.DictReader(io.StringIO(text))
+    expected_headers = set(_csv_expected_headers())
+    received_headers = {header.strip() for header in (reader.fieldnames or []) if header and header.strip()}
+    missing_headers = [header for header in ('first_name', 'last_name') if header not in received_headers]
+    unknown_headers = sorted(received_headers - expected_headers)
+
+    if not reader.fieldnames:
+        raise ValueError('CSV file is empty or missing a header row.')
+    if missing_headers:
+        raise ValueError(f'Missing required CSV header(s): {", ".join(missing_headers)}.')
+    if unknown_headers:
+        raise ValueError(f'Unsupported CSV header(s): {", ".join(unknown_headers)}.')
+
+    rows = list(reader)
+    if not rows:
+        raise ValueError('CSV file has no member rows to import.')
+
+    created_people_by_key = {}
+    pending_relations = []
+
+    with transaction.atomic():
+        for index, row in enumerate(rows, start=2):
+            normalized = {str(key).strip(): (value or '').strip() for key, value in row.items() if key is not None}
+            if not any(normalized.values()):
+                continue
+
+            person_data = _person_data_from_csv_row(normalized, index)
+            person = Person.objects.create(**person_data)
+
+            row_key = normalized.get('key')
+            if row_key:
+                if row_key in created_people_by_key:
+                    raise ValueError(f'Row {index}: duplicate key "{row_key}".')
+                created_people_by_key[row_key] = person
+
+            pending_relations.append({
+                'line': index,
+                'person': person,
+                'father_key': normalized.get('father_key', ''),
+                'mother_key': normalized.get('mother_key', ''),
+                'spouse_key': normalized.get('spouse_key', ''),
+                'father_id': normalized.get('father_id', ''),
+                'mother_id': normalized.get('mother_id', ''),
+                'spouse_id': normalized.get('spouse_id', ''),
+            })
+
+        created_count = len(pending_relations)
+        if not created_count:
+            raise ValueError('CSV file only contained blank rows.')
+
+        for relation_data in pending_relations:
+            person = relation_data['person']
+            father = _resolve_import_person_reference(
+                reference_key=relation_data['father_key'],
+                reference_id=relation_data['father_id'],
+                created_people_by_key=created_people_by_key,
+                line_number=relation_data['line'],
+                label='father',
+            )
+            mother = _resolve_import_person_reference(
+                reference_key=relation_data['mother_key'],
+                reference_id=relation_data['mother_id'],
+                created_people_by_key=created_people_by_key,
+                line_number=relation_data['line'],
+                label='mother',
+            )
+            spouse = _resolve_import_person_reference(
+                reference_key=relation_data['spouse_key'],
+                reference_id=relation_data['spouse_id'],
+                created_people_by_key=created_people_by_key,
+                line_number=relation_data['line'],
+                label='spouse',
+            )
+
+            person.father = father
+            person.mother = mother
+            person.spouse = spouse
+            person.save(update_fields=['father', 'mother', 'spouse'])
+
+            if spouse and spouse.spouse_id != person.pk:
+                spouse.spouse = person
+                spouse.save(update_fields=['spouse'])
+
+    return created_count
+
+
+def _person_data_from_csv_row(row, line_number):
+    first_name = row.get('first_name', '')
+    last_name = row.get('last_name', '')
+    if not first_name or not last_name:
+        raise ValueError(f'Row {line_number}: first_name and last_name are required.')
+
+    gender = (row.get('gender') or 'O').upper()
+    if gender not in {'M', 'F', 'O'}:
+        raise ValueError(f'Row {line_number}: gender must be M, F, or O.')
+
+    birth_date = _parse_optional_date(row.get('birth_date', ''), line_number, 'birth_date')
+    death_date = _parse_optional_date(row.get('death_date', ''), line_number, 'death_date')
+    if birth_date and death_date and death_date < birth_date:
+        raise ValueError(f'Row {line_number}: death_date cannot be earlier than birth_date.')
+    email = row.get('email', '')
+    if email:
+        try:
+            validate_email(email)
+        except Exception as exc:
+            raise ValueError(f'Row {line_number}: email is not valid.') from exc
+
+    return {
+        'first_name': first_name,
+        'last_name': last_name,
+        'gender': gender,
+        'birth_date': birth_date,
+        'death_date': death_date,
+        'birth_place': row.get('birth_place', ''),
+        'email': email,
+        'phone': row.get('phone', ''),
+        'blood_group': row.get('blood_group', ''),
+        'current_address': row.get('current_address', ''),
+        'living_separately': _parse_optional_bool(row.get('living_separately', ''), line_number),
+        'bio': row.get('bio', ''),
+    }
+
+
+def _parse_optional_date(value, line_number, field_name):
+    if not value:
+        return None
+    parsed = parse_date(value)
+    if parsed is None:
+        raise ValueError(f'Row {line_number}: {field_name} must be in YYYY-MM-DD format.')
+    return parsed
+
+
+def _parse_optional_bool(value, line_number):
+    if not value:
+        return False
+    normalized = value.strip().lower()
+    if normalized in {'1', 'true', 'yes', 'y'}:
+        return True
+    if normalized in {'0', 'false', 'no', 'n'}:
+        return False
+    raise ValueError(f'Row {line_number}: living_separately must be true/false, yes/no, or 1/0.')
+
+
+def _resolve_import_person_reference(reference_key, reference_id, created_people_by_key, line_number, label):
+    if reference_key:
+        person = created_people_by_key.get(reference_key)
+        if not person:
+            raise ValueError(f'Row {line_number}: {label}_key "{reference_key}" was not found in the CSV.')
+        return person
+    if reference_id:
+        try:
+            return Person.objects.get(pk=int(reference_id))
+        except (TypeError, ValueError):
+            raise ValueError(f'Row {line_number}: {label}_id must be a numeric member ID.')
+        except Person.DoesNotExist:
+            raise ValueError(f'Row {line_number}: {label}_id "{reference_id}" does not exist.')
     return None

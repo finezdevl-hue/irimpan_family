@@ -52,6 +52,39 @@
     color: var(--text);
     line-height: 1.7;
   }
+  .split-layout {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .csv-card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    padding: 1.2rem;
+    box-shadow: var(--shadow);
+  }
+  .csv-card h2 {
+    color: var(--cream);
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
+  }
+  .csv-card p {
+    color: var(--text-dim);
+    margin-bottom: 0.9rem;
+  }
+  .csv-help {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.9rem;
+    margin-top: 1rem;
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 0.9rem;
+  }
+  .csv-help code {
+    word-break: break-word;
+  }
 </style>
 {% endblock %}
 
@@ -62,34 +95,62 @@
     <p>Manage family member records in the custom admin panel.</p>
   </div>
 </div>
-<form method="post" enctype="multipart/form-data" class="card">
-  {% csrf_token %}
-  {% for field in form %}
-  {% if field.name == 'living_separately' %}
-  <div class="form-group">
-    <div class="checkbox-field">
-      {{ field }}
-      <div class="checkbox-copy">
-        <strong>Living Separately</strong>
-        <span>If checked, this member will be shown as a separate home on the Family page.</span>
+<div class="split-layout">
+  {% if action == 'Add' %}
+  <section class="csv-card">
+    <h2>Import Members from CSV</h2>
+    <p>Upload a CSV file to create multiple members at once.</p>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="{{ csv_upload_form.csv_file.id_for_label }}">CSV File</label>
+        {{ csv_upload_form.csv_file }}
       </div>
+      {% if csv_upload_form.csv_file.errors %}<div class="message">{{ csv_upload_form.csv_file.errors|join:", " }}</div>{% endif %}
+      <div class="admin-actions">
+        <button type="submit" name="import_csv" value="1" class="btn btn-primary">Upload CSV</button>
+      </div>
+    </form>
+
+    <div class="csv-help">
+      <strong>Expected headers:</strong><br>
+      <code>{{ csv_expected_headers|join:", " }}</code><br><br>
+      Use <code>key</code> together with <code>father_key</code>, <code>mother_key</code>, and <code>spouse_key</code> to link rows within the same CSV.<br>
+      Use <code>father_id</code>, <code>mother_id</code>, and <code>spouse_id</code> to connect imported rows to existing members already in the database.<br>
+      Dates must use <code>YYYY-MM-DD</code>.
     </div>
-    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
-  </div>
-  {% else %}
-  <div class="form-group">
-    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-    {{ field }}
-    {% if field.name == 'bio' %}<small class="muted">Use the toolbar to add bold text, lists, and links.</small>{% endif %}
-    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
-  </div>
+  </section>
   {% endif %}
-  {% endfor %}
-  <div class="admin-actions">
-    <button type="submit" class="btn btn-primary">{{ action }} Member</button>
-    <a href="{% url 'admin_members' %}" class="btn btn-secondary">Cancel</a>
-  </div>
-</form>
+
+  <form method="post" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    {% for field in form %}
+    {% if field.name == 'living_separately' %}
+    <div class="form-group">
+      <div class="checkbox-field">
+        {{ field }}
+        <div class="checkbox-copy">
+          <strong>Living Separately</strong>
+          <span>If checked, this member will be shown as a separate home on the Family page.</span>
+        </div>
+      </div>
+      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% else %}
+    <div class="form-group">
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.name == 'bio' %}<small class="muted">Use the toolbar to add bold text, lists, and links.</small>{% endif %}
+      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% endif %}
+    {% endfor %}
+    <div class="admin-actions">
+      <button type="submit" class="btn btn-primary">{{ action }} Member</button>
+      <a href="{% url 'admin_members' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
 {% endblock %}
 
 {% block extra_js %}

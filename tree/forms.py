@@ -60,6 +60,20 @@ class PersonForm(forms.ModelForm):
         self.fields['last_name'].required = True
 
 
+class MemberCSVUploadForm(forms.Form):
+    csv_file = forms.FileField(
+        widget=forms.ClearableFileInput(attrs={'class': 'form-input', 'accept': '.csv,text/csv'}),
+        help_text='Upload a CSV file with member details.',
+    )
+
+    def clean_csv_file(self):
+        uploaded = self.cleaned_data['csv_file']
+        name = (uploaded.name or '').lower()
+        if not name.endswith('.csv'):
+            raise forms.ValidationError('Please upload a CSV file.')
+        return uploaded
+
+
 class AdminLoginForm(AuthenticationForm):
     username = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Admin username'})

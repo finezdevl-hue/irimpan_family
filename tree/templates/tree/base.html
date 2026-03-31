@@ -384,11 +384,11 @@
         <a href="{% url 'contact' %}">Contact Us</a>
       </div>
       <div class="nav-group">
-        {% if request.user.is_authenticated and request.user.is_staff %}
+        {% if request.user.is_authenticated and request.user.is_staff or request.user.is_authenticated and request.user.is_superuser or request.user.is_authenticated and perms.tree.add_event or request.user.is_authenticated and perms.tree.add_galleryphoto %}
           <a href="{% url 'admin_panel' %}" class="btn-link">Admin Panel</a>
           <a href="{% url 'admin_logout' %}" class="btn-link">Logout</a>
         {% else %}
-          <a href="{% url 'admin_login' %}" class="btn-link">Admin Login</a>
+          <a href="{% url 'admin_login' %}" class="btn-link">Dashboard Login</a>
         {% endif %}
       </div>
     </div>

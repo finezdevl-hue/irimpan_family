@@ -4,7 +4,7 @@
 {% block content %}
 <section class="hero-band" style="max-width:640px;margin-left:auto;margin-right:auto;">
   <h1 class="section-title">Admin Login</h1>
-  <p class="section-sub">Only admin accounts can sign in here and access the management dashboard.</p>
+  <p class="section-sub">Admin and family member accounts can sign in here to access the management dashboard.</p>
 </section>
 
 <div class="card" style="max-width:640px;margin:0 auto;">
@@ -23,7 +23,7 @@
       <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
       {{ form.password }}
     </div>
-    <button type="submit" class="btn btn-primary">Login to Admin</button>
+    <button type="submit" class="btn btn-primary">Login to Dashboard</button>
   </form>
 </div>
 {% endblock %}

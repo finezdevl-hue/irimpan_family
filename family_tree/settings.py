@@ -4,7 +4,7 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-family-tree-secret-key-change-in-production')
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = 'true'
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '*').split(',') if host.strip()]
 
 render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')

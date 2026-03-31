@@ -5,7 +5,13 @@
 <div class="admin-head">
   <div>
     <h1 class="section-title">Manage Upcoming Events</h1>
-    <p>Add, edit, and remove upcoming events.</p>
+    <p>
+      {% if is_admin_user %}
+      Add, edit, and remove upcoming events.
+      {% else %}
+      Add new upcoming events. Editing and deleting stay with admin users.
+      {% endif %}
+    </p>
   </div>
   <a href="{% url 'admin_event_add' %}" class="btn btn-primary">Add Event</a>
 </div>
@@ -22,8 +28,12 @@
         <td>{{ event.event_date }}</td>
         <td>{{ event.location|default:"-" }}</td>
         <td class="admin-actions">
+          {% if is_admin_user %}
           <a href="{% url 'admin_event_edit' event.pk %}" class="btn btn-secondary">Edit</a>
           <a href="{% url 'admin_event_delete' event.pk %}" class="btn btn-danger">Delete</a>
+          {% else %}
+          <span class="muted">Add-only access</span>
+          {% endif %}
         </td>
       </tr>
       {% empty %}

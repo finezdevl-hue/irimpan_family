@@ -12,7 +12,7 @@
 <div class="admin-table-wrap">
   <table class="admin-table">
     <thead>
-      <tr><th>Name</th><th>Gender</th><th>Birth</th><th>Actions</th></tr>
+      <tr><th>Name</th><th>Gender</th><th>Birth</th><th>Login</th><th>Actions</th></tr>
     </thead>
     <tbody>
       {% for person in people %}
@@ -20,13 +20,20 @@
         <td>{{ person.full_name }}</td>
         <td>{{ person.get_gender_display }}</td>
         <td>{{ person.birth_date|default:"-" }}</td>
+        <td>
+          {% if person.user %}
+          {{ person.user.username }}
+          {% else %}
+          -
+          {% endif %}
+        </td>
         <td class="admin-actions">
           <a href="{% url 'admin_member_edit' person.pk %}" class="btn btn-secondary">Edit</a>
           <a href="{% url 'admin_member_delete' person.pk %}" class="btn btn-danger">Delete</a>
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="4">No members found.</td></tr>
+      <tr><td colspan="5">No members found.</td></tr>
       {% endfor %}
     </tbody>
   </table>

@@ -5,10 +5,34 @@
 <div class="admin-head">
   <div>
     <h1 class="section-title">Dashboard</h1>
-    <p>Overview of members and events in the custom admin panel.</p>
+    <p>
+      {% if is_family_member_user %}
+      Choose where you want to contribute. Member logins can only add upcoming events and event gallery photos.
+      {% else %}
+      Overview of members and events in the custom admin panel.
+      {% endif %}
+    </p>
   </div>
 </div>
 
+{% if is_family_member_user and not is_admin_user %}
+<div class="admin-stats">
+  <div class="admin-stat">
+    <span>Upcoming Events</span>
+    <strong>Add</strong>
+    <div class="admin-actions" style="margin-top:1rem;">
+      <a href="{% url 'admin_event_add' %}" class="btn btn-primary">Add Event</a>
+    </div>
+  </div>
+  <div class="admin-stat">
+    <span>Event Gallery</span>
+    <strong>Add</strong>
+    <div class="admin-actions" style="margin-top:1rem;">
+      <a href="{% url 'admin_gallery_add' %}" class="btn btn-primary">Add Photo</a>
+    </div>
+  </div>
+</div>
+{% else %}
 <div class="admin-stats">
   <div class="admin-stat">
     <span>Total Members</span>
@@ -26,6 +50,7 @@
 
 <hr class="divider">
 
+{% if can_manage_members %}
 <div class="admin-head">
   <div><h2 class="section-title">Recent Members</h2></div>
   <a href="{% url 'admin_member_add' %}" class="btn btn-primary">Add Member</a>
@@ -47,7 +72,9 @@
 </div>
 
 <hr class="divider">
+{% endif %}
 
+{% if can_manage_events %}
 <div class="admin-head">
   <div><h2 class="section-title">Recent Events</h2></div>
   <a href="{% url 'admin_event_add' %}" class="btn btn-primary">Add Event</a>
@@ -60,7 +87,13 @@
       <tr>
         <td>{{ event.title }}</td>
         <td>{{ event.event_date }}</td>
-        <td class="admin-actions"><a href="{% url 'admin_event_edit' event.pk %}" class="btn btn-secondary">Edit</a></td>
+        <td class="admin-actions">
+          {% if is_admin_user %}
+          <a href="{% url 'admin_event_edit' event.pk %}" class="btn btn-secondary">Edit</a>
+          {% else %}
+          <span class="muted">View only</span>
+          {% endif %}
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="3">No events found.</td></tr>
@@ -70,7 +103,9 @@
 </div>
 
 <hr class="divider">
+{% endif %}
 
+{% if can_manage_gallery %}
 <div class="admin-head">
   <div><h2 class="section-title">Recent Gallery Photos</h2></div>
   <a href="{% url 'admin_gallery_add' %}" class="btn btn-primary">Add Photo</a>
@@ -83,7 +118,13 @@
       <tr>
         <td>{{ item.title }}</td>
         <td>{{ item.event_name }}</td>
-        <td class="admin-actions"><a href="{% url 'admin_gallery_edit' item.pk %}" class="btn btn-secondary">Edit</a></td>
+        <td class="admin-actions">
+          {% if is_admin_user %}
+          <a href="{% url 'admin_gallery_edit' item.pk %}" class="btn btn-secondary">Edit</a>
+          {% else %}
+          <span class="muted">View only</span>
+          {% endif %}
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="3">No gallery photos found.</td></tr>
@@ -91,4 +132,6 @@
     </tbody>
   </table>
 </div>
+{% endif %}
+{% endif %}
 {% endblock %}

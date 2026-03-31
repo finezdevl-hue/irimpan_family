@@ -1,5 +1,6 @@
 import os
 
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
@@ -39,6 +40,13 @@ class Person(models.Model):
         'self', null=True, blank=True,
         on_delete=models.SET_NULL,
         related_name='married_to'
+    )
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='family_member_profile',
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

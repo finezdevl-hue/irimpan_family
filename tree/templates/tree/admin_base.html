@@ -117,12 +117,28 @@
 <div class="admin-layout">
   <aside class="admin-sidebar">
     <h2>Custom Admin</h2>
-    <p>Manage members, events, and event gallery photos from one place.</p>
+    <p>
+      {% if is_family_member_user %}
+      Add new upcoming events and event gallery photos from one place.
+      {% else %}
+      Manage members, events, and event gallery photos from one place.
+      {% endif %}
+    </p>
     <nav class="admin-nav">
       <a href="{% url 'admin_panel' %}">Dashboard</a>
+      {% if can_manage_members %}
       <a href="{% url 'admin_members' %}">Members</a>
-      <a href="{% url 'admin_events' %}">Upcoming Events</a>
-      <a href="{% url 'admin_gallery' %}">Event Gallery</a>
+      {% endif %}
+      {% if can_manage_events %}
+      <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_event_add' %}{% else %}{% url 'admin_events' %}{% endif %}">
+        {% if is_family_member_user and not is_admin_user %}Add Upcoming Event{% else %}Upcoming Events{% endif %}
+      </a>
+      {% endif %}
+      {% if can_manage_gallery %}
+      <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_gallery_add' %}{% else %}{% url 'admin_gallery' %}{% endif %}">
+        {% if is_family_member_user and not is_admin_user %}Add Gallery Photo{% else %}Event Gallery{% endif %}
+      </a>
+      {% endif %}
     </nav>
   </aside>
 

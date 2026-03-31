@@ -13,10 +13,46 @@ import io
 import json
 
 
-admin_required = user_passes_test(
-    lambda user: user.is_authenticated and (user.is_staff or user.is_superuser),
-    login_url='admin_login',
-)
+def _is_admin_user(user):
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+def _is_family_member_user(user):
+    return user.is_authenticated and user.groups.filter(name='family_member').exists()
+
+
+def _can_access_admin_panel(user):
+    return _is_admin_user(user) or _is_family_member_user(user)
+
+
+def _can_manage_members(user):
+    return _is_admin_user(user)
+
+
+def _can_manage_events(user):
+    return _is_admin_user(user) or user.has_perm('tree.add_event')
+
+
+def _can_manage_gallery(user):
+    return _is_admin_user(user) or user.has_perm('tree.add_galleryphoto')
+
+
+def _admin_context(request, **extra):
+    context = {
+        'can_manage_members': _can_manage_members(request.user),
+        'can_manage_events': _can_manage_events(request.user),
+        'can_manage_gallery': _can_manage_gallery(request.user),
+        'is_admin_user': _is_admin_user(request.user),
+        'is_family_member_user': _is_family_member_user(request.user),
+    }
+    context.update(extra)
+    return context
+
+
+admin_required = user_passes_test(_can_access_admin_panel, login_url='admin_login')
+members_required = user_passes_test(_can_manage_members, login_url='admin_login')
+events_required = user_passes_test(_can_manage_events, login_url='admin_login')
+gallery_required = user_passes_test(_can_manage_gallery, login_url='admin_login')
 
 
 def home(request):
@@ -133,7 +169,7 @@ def contact(request):
 
 
 def admin_login(request):
-    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+    if _can_access_admin_panel(request.user):
         return redirect('admin_panel')
 
     form = AdminLoginForm(request, data=request.POST or None)
@@ -153,29 +189,33 @@ def admin_logout(request):
 
 @admin_required
 def admin_panel(request):
+    if _is_family_member_user(request.user) and not _is_admin_user(request.user):
+        return render(request, 'tree/admin_dashboard.html', _admin_context(request))
+
     people_count = Person.objects.count()
     event_count = Event.objects.count()
     gallery_count = GalleryPhoto.objects.count()
     recent_people = Person.objects.all()[:5]
     recent_events = Event.objects.all()[:5]
     recent_gallery = GalleryPhoto.objects.all()[:5]
-    return render(request, 'tree/admin_dashboard.html', {
-        'people_count': people_count,
-        'event_count': event_count,
-        'gallery_count': gallery_count,
-        'recent_people': recent_people,
-        'recent_events': recent_events,
-        'recent_gallery': recent_gallery,
-    })
+    return render(request, 'tree/admin_dashboard.html', _admin_context(
+        request,
+        people_count=people_count,
+        event_count=event_count,
+        gallery_count=gallery_count,
+        recent_people=recent_people,
+        recent_events=recent_events,
+        recent_gallery=recent_gallery,
+    ))
 
 
-@admin_required
+@members_required
 def admin_members(request):
     people = Person.objects.all()
-    return render(request, 'tree/admin_members.html', {'people': people})
+    return render(request, 'tree/admin_members.html', _admin_context(request, people=people))
 
 
-@admin_required
+@members_required
 def admin_member_add(request):
     if request.method == 'POST':
         if 'import_csv' in request.POST:
@@ -199,15 +239,16 @@ def admin_member_add(request):
     else:
         form = PersonForm()
         csv_upload_form = MemberCSVUploadForm()
-    return render(request, 'tree/admin_member_form.html', {
-        'form': form,
-        'action': 'Add',
-        'csv_upload_form': csv_upload_form,
-        'csv_expected_headers': _csv_expected_headers(),
-    })
+    return render(request, 'tree/admin_member_form.html', _admin_context(
+        request,
+        form=form,
+        action='Add',
+        csv_upload_form=csv_upload_form,
+        csv_expected_headers=_csv_expected_headers(),
+    ))
 
 
-@admin_required
+@members_required
 def admin_member_edit(request, pk):
     person = get_object_or_404(Person, pk=pk)
     if request.method == 'POST':
@@ -218,10 +259,16 @@ def admin_member_edit(request, pk):
             return redirect('admin_members')
     else:
         form = PersonForm(instance=person)
-    return render(request, 'tree/admin_member_form.html', {'form': form, 'action': 'Edit', 'person': person, 'csv_upload_form': MemberCSVUploadForm()})
+    return render(request, 'tree/admin_member_form.html', _admin_context(
+        request,
+        form=form,
+        action='Edit',
+        person=person,
+        csv_upload_form=MemberCSVUploadForm(),
+    ))
 
 
-@admin_required
+@members_required
 def admin_member_delete(request, pk):
     person = get_object_or_404(Person, pk=pk)
     if request.method == 'POST':
@@ -229,22 +276,26 @@ def admin_member_delete(request, pk):
         person.delete()
         messages.success(request, f'{name} deleted successfully.')
         return redirect('admin_members')
-    return render(request, 'tree/admin_member_delete.html', {'person': person})
+    return render(request, 'tree/admin_member_delete.html', _admin_context(request, person=person))
 
 
-@admin_required
+@events_required
 def admin_events(request):
+    if _is_family_member_user(request.user) and not _is_admin_user(request.user):
+        return redirect('admin_event_add')
     events = Event.objects.all()
-    return render(request, 'tree/admin_events.html', {'events': events})
+    return render(request, 'tree/admin_events.html', _admin_context(request, events=events))
 
 
-@admin_required
+@gallery_required
 def admin_gallery(request):
+    if _is_family_member_user(request.user) and not _is_admin_user(request.user):
+        return redirect('admin_gallery_add')
     gallery_items = GalleryPhoto.objects.all()
-    return render(request, 'tree/admin_gallery.html', {'gallery_items': gallery_items})
+    return render(request, 'tree/admin_gallery.html', _admin_context(request, gallery_items=gallery_items))
 
 
-@admin_required
+@gallery_required
 def admin_gallery_add(request):
     if request.method == 'POST':
         form = GalleryPhotoForm(request.POST, request.FILES)
@@ -275,10 +326,10 @@ def admin_gallery_add(request):
                 return redirect('admin_gallery')
     else:
         form = GalleryPhotoForm()
-    return render(request, 'tree/admin_gallery_form.html', {'form': form, 'action': 'Add'})
+    return render(request, 'tree/admin_gallery_form.html', _admin_context(request, form=form, action='Add'))
 
 
-@admin_required
+@members_required
 def admin_gallery_edit(request, pk):
     item = get_object_or_404(GalleryPhoto, pk=pk)
     if request.method == 'POST':
@@ -289,10 +340,10 @@ def admin_gallery_edit(request, pk):
             return redirect('admin_gallery')
     else:
         form = GalleryPhotoForm(instance=item)
-    return render(request, 'tree/admin_gallery_form.html', {'form': form, 'action': 'Edit', 'item': item})
+    return render(request, 'tree/admin_gallery_form.html', _admin_context(request, form=form, action='Edit', item=item))
 
 
-@admin_required
+@members_required
 def admin_gallery_delete(request, pk):
     item = get_object_or_404(GalleryPhoto, pk=pk)
     if request.method == 'POST':
@@ -300,10 +351,10 @@ def admin_gallery_delete(request, pk):
         item.delete()
         messages.success(request, f'{title} removed from the gallery.')
         return redirect('admin_gallery')
-    return render(request, 'tree/admin_gallery_delete.html', {'item': item})
+    return render(request, 'tree/admin_gallery_delete.html', _admin_context(request, item=item))
 
 
-@admin_required
+@events_required
 def admin_event_add(request):
     if request.method == 'POST':
         form = EventForm(request.POST, request.FILES)
@@ -313,10 +364,10 @@ def admin_event_add(request):
             return redirect('admin_events')
     else:
         form = EventForm()
-    return render(request, 'tree/admin_event_form.html', {'form': form, 'action': 'Add'})
+    return render(request, 'tree/admin_event_form.html', _admin_context(request, form=form, action='Add'))
 
 
-@admin_required
+@members_required
 def admin_event_edit(request, pk):
     event = get_object_or_404(Event, pk=pk)
     if request.method == 'POST':
@@ -327,10 +378,10 @@ def admin_event_edit(request, pk):
             return redirect('admin_events')
     else:
         form = EventForm(instance=event)
-    return render(request, 'tree/admin_event_form.html', {'form': form, 'action': 'Edit', 'event': event})
+    return render(request, 'tree/admin_event_form.html', _admin_context(request, form=form, action='Edit', event=event))
 
 
-@admin_required
+@members_required
 def admin_event_delete(request, pk):
     event = get_object_or_404(Event, pk=pk)
     if request.method == 'POST':
@@ -338,7 +389,7 @@ def admin_event_delete(request, pk):
         event.delete()
         messages.success(request, f'{title} deleted successfully.')
         return redirect('admin_events')
-    return render(request, 'tree/admin_event_delete.html', {'event': event})
+    return render(request, 'tree/admin_event_delete.html', _admin_context(request, event=event))
 
 
 def tree_view(request):
@@ -383,7 +434,7 @@ def person_detail(request, pk):
     })
 
 
-@admin_required
+@members_required
 def person_add(request):
     if request.method == 'POST':
         form = PersonForm(request.POST, request.FILES)
@@ -396,7 +447,7 @@ def person_add(request):
     return render(request, 'tree/person_form.html', {'form': form, 'action': 'Add'})
 
 
-@admin_required
+@members_required
 def person_edit(request, pk):
     person = get_object_or_404(Person, pk=pk)
     if request.method == 'POST':
@@ -410,7 +461,7 @@ def person_edit(request, pk):
     return render(request, 'tree/person_form.html', {'form': form, 'action': 'Edit', 'person': person})
 
 
-@admin_required
+@members_required
 def person_delete(request, pk):
     person = get_object_or_404(Person, pk=pk)
     if request.method == 'POST':

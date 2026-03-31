@@ -125,13 +125,18 @@
   <form method="post" enctype="multipart/form-data" class="card">
     {% csrf_token %}
     {% for field in form %}
-    {% if field.name == 'living_separately' %}
+    {% if field.name == 'living_separately' or field.name == 'allow_dashboard_login' %}
     <div class="form-group">
       <div class="checkbox-field">
         {{ field }}
         <div class="checkbox-copy">
+          {% if field.name == 'living_separately' %}
           <strong>Living Separately</strong>
           <span>If checked, this member will be shown as a separate home on the Family page.</span>
+          {% else %}
+          <strong>Dashboard Login Access</strong>
+          <span>If checked, this member can sign in to the dashboard using the username and password below.</span>
+          {% endif %}
         </div>
       </div>
       {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
@@ -141,6 +146,7 @@
       <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
       {{ field }}
       {% if field.name == 'bio' %}<small class="muted">Use the toolbar to add bold text, lists, and links.</small>{% endif %}
+      {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
       {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
     </div>
     {% endif %}

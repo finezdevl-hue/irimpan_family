@@ -5,7 +5,13 @@
 <div class="admin-head">
   <div>
     <h1 class="section-title">Event Gallery Photos</h1>
-    <p>Upload and manage photos from completed events.</p>
+    <p>
+      {% if is_admin_user %}
+      Upload and manage photos from completed events.
+      {% else %}
+      Upload new photos from completed events. Editing and deleting stay with admin users.
+      {% endif %}
+    </p>
   </div>
   <a href="{% url 'admin_gallery_add' %}" class="btn btn-primary">Add Photo</a>
 </div>
@@ -21,8 +27,12 @@
         <td>{{ item.event_name }}</td>
         <td>{{ item.event_date|default:"-" }}</td>
         <td class="admin-actions">
+          {% if is_admin_user %}
           <a href="{% url 'admin_gallery_edit' item.pk %}" class="btn btn-secondary">Edit</a>
           <a href="{% url 'admin_gallery_delete' item.pk %}" class="btn btn-danger">Delete</a>
+          {% else %}
+          <span class="muted">Add-only access</span>
+          {% endif %}
         </td>
       </tr>
       {% empty %}

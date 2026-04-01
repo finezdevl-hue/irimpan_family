@@ -1,5 +1,5 @@
 {% extends "tree/admin_base.html" %}
-{% block title %}{{ action }} Popup Ad - Irimpan Kudumba Yogam{% endblock %}
+{% block title %}Live Stream - Irimpan Kudumba Yogam{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
@@ -33,26 +33,21 @@
 {% block admin_content %}
 <div class="admin-head">
   <div>
-    <h1 class="section-title">{{ action }} Popup Ad</h1>
-    <p>Create multiple popup ads, schedule them with dates, and control whether each one is active.</p>
+    <h1 class="section-title">Live Stream</h1>
+    <p>Paste the YouTube live link here and the public Live Stream page will play it automatically.</p>
   </div>
 </div>
-<form method="post" enctype="multipart/form-data" class="card">
+
+<form method="post" class="card">
   {% csrf_token %}
   {% for field in form %}
-    {% if field.name == 'is_active' or field.name == 'show_as_popup' %}
+    {% if field.name == 'is_active' %}
     <div class="form-group">
       <div class="checkbox-field">
         {{ field }}
         <div class="checkbox-copy">
           <strong>{{ field.label }}</strong>
-          <span>
-            {% if field.name == 'is_active' %}
-            Turn this on to make the ad available during its scheduled dates.
-            {% else %}
-            Turn this on only when this ad should appear as a popup.
-            {% endif %}
-          </span>
+          <span>Turn this off to hide the live stream page embed until you are ready.</span>
         </div>
       </div>
       {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
@@ -61,19 +56,35 @@
     <div class="form-group">
       <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
       {{ field }}
-      {% if field.name == 'display_type' %}<small class="muted">Choose whether this ad appears as a popup, a side card, or in the home page ad section.</small>{% endif %}
-      {% if field.name == 'priority' %}<small class="muted">Higher priority ads are chosen first when multiple active ads share the same placement.</small>{% endif %}
-      {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+      {% if field.name == 'youtube_url' %}<small class="muted">You can paste a normal watch link, a live link, a share link, or an embed link.</small>{% endif %}
       {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
     </div>
     {% endif %}
   {% endfor %}
+
   {% if form.non_field_errors %}
   <div class="message">{{ form.non_field_errors|join:", " }}</div>
   {% endif %}
+
   <div class="admin-actions">
-    <button type="submit" class="btn btn-primary">{{ action }} Ad</button>
-    <a href="{% url 'admin_ads' %}" class="btn btn-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary">Save Live Stream</button>
+    <a href="{% url 'live_stream' %}" class="btn btn-secondary">Open Public Page</a>
   </div>
 </form>
+
+{% if stream and stream.embed_url %}
+<hr class="divider">
+<div class="card">
+  <h2 class="section-title" style="margin-bottom:0.8rem;">Current Stream Preview</h2>
+  <div style="position:relative;width:100%;padding-top:56.25%;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#dff2f3,#eef8f8);">
+    <iframe
+      src="{{ stream.embed_url }}"
+      title="{{ stream.title }}"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen
+      style="position:absolute;inset:0;width:100%;height:100%;border:0;">
+    </iframe>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.validators import validate_email
 from django.db import transaction
 from django.utils.dateparse import parse_date
-from .models import Person, Event, GalleryPhoto, SiteAd
+from .models import Person, Event, GalleryPhoto, SiteAd, LiveStreamSettings
 from .forms import (
     PersonForm,
     MemberCSVUploadForm,
@@ -15,6 +15,7 @@ from .forms import (
     EventForm,
     GalleryPhotoForm,
     SiteAdForm,
+    LiveStreamSettingsForm,
 )
 import csv
 import io
@@ -49,12 +50,17 @@ def _can_manage_ads(user):
     return _can_access_admin_panel(user)
 
 
+def _can_manage_live_stream(user):
+    return _is_admin_user(user)
+
+
 def _admin_context(request, **extra):
     context = {
         'can_manage_members': _can_manage_members(request.user),
         'can_manage_events': _can_manage_events(request.user),
         'can_manage_gallery': _can_manage_gallery(request.user),
         'can_manage_ads': _can_manage_ads(request.user),
+        'can_manage_live_stream': _can_manage_live_stream(request.user),
         'is_admin_user': _is_admin_user(request.user),
         'is_family_member_user': _is_family_member_user(request.user),
     }
@@ -67,6 +73,7 @@ members_required = user_passes_test(_can_manage_members, login_url='admin_login'
 events_required = user_passes_test(_can_manage_events, login_url='admin_login')
 gallery_required = user_passes_test(_can_manage_gallery, login_url='admin_login')
 ads_required = user_passes_test(_can_manage_ads, login_url='admin_login')
+live_stream_required = user_passes_test(_can_manage_live_stream, login_url='admin_login')
 
 
 def home(request):
@@ -93,9 +100,23 @@ def home(request):
         },
     ]
     upcoming_events = Event.objects.all()[:3]
-    popup_ad = SiteAd.objects.filter(is_active=True, show_as_popup=True).order_by('-created_at').first()
-    if popup_ad and not popup_ad.is_currently_visible:
-        popup_ad = next((ad for ad in SiteAd.objects.filter(is_active=True, show_as_popup=True).order_by('-created_at') if ad.is_currently_visible), None)
+    active_ads = [ad for ad in SiteAd.objects.all() if ad.is_scheduled_now]
+    popup_ad = next(
+        (ad for ad in active_ads if ad.display_type == SiteAd.DISPLAY_POPUP and ad.show_as_popup),
+        None,
+    )
+    side_ads = [ad for ad in active_ads if ad.display_type == SiteAd.DISPLAY_SIDE]
+    side_ad = side_ads[0] if side_ads else None
+    section_ads = [ad for ad in active_ads if ad.display_type == SiteAd.DISPLAY_SECTION][:3]
+
+    # Fallback: if older ads are still saved as popup-only, keep one visible on the homepage.
+    if side_ad is None:
+        side_ad = next((ad for ad in active_ads if ad != popup_ad), popup_ad)
+        side_ads = [side_ad] if side_ad else []
+
+    if not section_ads:
+        section_ads = [ad for ad in active_ads if ad not in {popup_ad, side_ad}][:3]
+
     return render(request, 'tree/home.html', {
         'people': people,
         'total': total,
@@ -103,6 +124,9 @@ def home(request):
         'mentors': mentors,
         'upcoming_events': upcoming_events,
         'popup_ad': popup_ad,
+        'side_ad': side_ad,
+        'side_ads': side_ads,
+        'section_ads': section_ads,
     })
 
 
@@ -186,6 +210,15 @@ def contact(request):
     return render(request, 'tree/contact.html')
 
 
+def live_stream(request):
+    stream = LiveStreamSettings.objects.order_by('-updated_at', '-id').first()
+    if stream and not stream.is_active:
+        stream = None
+    if stream and not stream.embed_url:
+        stream = None
+    return render(request, 'tree/live_stream.html', {'stream': stream})
+
+
 def admin_login(request):
     if _can_access_admin_panel(request.user):
         return redirect('admin_panel')
@@ -213,6 +246,7 @@ def admin_panel(request):
     people_count = Person.objects.count()
     event_count = Event.objects.count()
     ad_count = SiteAd.objects.count()
+    live_stream = LiveStreamSettings.objects.order_by('-updated_at', '-id').first()
     gallery_count = GalleryPhoto.objects.count()
     recent_people = Person.objects.all()[:5]
     recent_events = Event.objects.all()[:5]
@@ -227,6 +261,7 @@ def admin_panel(request):
         recent_people=recent_people,
         recent_events=recent_events,
         recent_ads=recent_ads,
+        live_stream=live_stream,
         recent_gallery=recent_gallery,
     ))
 
@@ -361,6 +396,20 @@ def admin_ads(request):
         return redirect('admin_ad_add')
     ads = SiteAd.objects.select_related('created_by').all()
     return render(request, 'tree/admin_ads.html', _admin_context(request, ads=ads))
+
+
+@live_stream_required
+def admin_live_stream(request):
+    stream = LiveStreamSettings.objects.order_by('-updated_at', '-id').first()
+    if request.method == 'POST':
+        form = LiveStreamSettingsForm(request.POST, instance=stream)
+        if form.is_valid():
+            stream = form.save()
+            messages.success(request, 'Live stream settings updated successfully.')
+            return redirect('admin_live_stream')
+    else:
+        form = LiveStreamSettingsForm(instance=stream)
+    return render(request, 'tree/admin_live_stream_form.html', _admin_context(request, form=form, stream=stream))
 
 
 @ads_required

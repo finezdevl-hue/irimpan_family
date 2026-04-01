@@ -1,15 +1,15 @@
 {% extends "tree/admin_base.html" %}
-{% block title %}Popup Ads - Irimpan Kudumba Yogam{% endblock %}
+{% block title %}Manage Ads - Irimpan Kudumba Yogam{% endblock %}
 
 {% block admin_content %}
 <div class="admin-head">
   <div>
-    <h1 class="section-title">Manage Popup Ads</h1>
+    <h1 class="section-title">Manage Ads</h1>
     <p>
       {% if is_admin_user %}
-      Post, edit, and remove popup ads that appear when the site opens.
+      Post, edit, and remove popup, side, and home section ads.
       {% else %}
-      Post new popup ads. Editing and deleting stay with admin users.
+      Post new ads. Editing and deleting stay with admin users.
       {% endif %}
     </p>
   </div>
@@ -18,16 +18,17 @@
 <div class="admin-table-wrap">
   <table class="admin-table">
     <thead>
-      <tr><th>Title</th><th>Created By</th><th>Status</th><th>Schedule</th><th>Actions</th></tr>
+      <tr><th>Title</th><th>Placement</th><th>Priority</th><th>Status</th><th>Schedule</th><th>Actions</th></tr>
     </thead>
     <tbody>
       {% for ad in ads %}
       <tr>
         <td>{{ ad.title }}</td>
-        <td>{% if ad.created_by %}{{ ad.created_by.username }}{% else %}-{% endif %}</td>
+        <td>{{ ad.get_display_type_display }}</td>
+        <td>{{ ad.priority }}</td>
         <td>
           {% if ad.is_active %}Active{% else %}Inactive{% endif %}
-          {% if not ad.show_as_popup %} / Hidden{% endif %}
+          {% if ad.display_type == 'popup' and not ad.show_as_popup %} / Popup Off{% endif %}
         </td>
         <td>
           {{ ad.start_date|default:"Now" }} to {{ ad.end_date|default:"Until removed" }}
@@ -42,7 +43,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="5">No popup ads found.</td></tr>
+      <tr><td colspan="6">No ads found.</td></tr>
       {% endfor %}
     </tbody>
   </table>

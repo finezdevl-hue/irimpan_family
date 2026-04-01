@@ -1,4 +1,5 @@
 import os
+from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.db import models
@@ -171,11 +172,22 @@ class GalleryPhoto(models.Model):
 
 
 class SiteAd(models.Model):
+    DISPLAY_POPUP = 'popup'
+    DISPLAY_SIDE = 'side'
+    DISPLAY_SECTION = 'section'
+    DISPLAY_CHOICES = [
+        (DISPLAY_POPUP, 'Popup'),
+        (DISPLAY_SIDE, 'Side Ad'),
+        (DISPLAY_SECTION, 'Home Section'),
+    ]
+
     title = models.CharField(max_length=200)
     message = models.TextField(blank=True, default='')
     image = models.ImageField(upload_to='ads/', null=True, blank=True)
     button_text = models.CharField(max_length=80, blank=True)
     button_url = models.URLField(blank=True)
+    display_type = models.CharField(max_length=20, choices=DISPLAY_CHOICES, default=DISPLAY_POPUP)
+    priority = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     show_as_popup = models.BooleanField(default=True)
     start_date = models.DateField(null=True, blank=True)
@@ -190,18 +202,68 @@ class SiteAd(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_at', '-id']
+        ordering = ['-priority', '-created_at', '-id']
 
     def __str__(self):
         return self.title
 
     @property
-    def is_currently_visible(self):
+    def is_scheduled_now(self):
         today = timezone.localdate()
-        if not self.is_active or not self.show_as_popup:
+        if not self.is_active:
             return False
         if self.start_date and self.start_date > today:
             return False
         if self.end_date and self.end_date < today:
             return False
         return True
+
+    @property
+    def is_currently_visible(self):
+        if not self.is_scheduled_now:
+            return False
+        if self.display_type == self.DISPLAY_POPUP:
+            return self.show_as_popup
+        return True
+
+
+class LiveStreamSettings(models.Model):
+    title = models.CharField(max_length=200, default='Live Stream')
+    youtube_url = models.URLField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Live Stream Settings'
+        verbose_name_plural = 'Live Stream Settings'
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def youtube_video_id(self):
+        url = (self.youtube_url or '').strip()
+        if not url:
+            return ''
+        parsed = urlparse(url)
+        host = (parsed.netloc or '').lower()
+        if 'youtu.be' in host:
+            return parsed.path.strip('/').split('/')[0]
+        if 'youtube.com' in host:
+            if parsed.path == '/watch':
+                return parse_qs(parsed.query).get('v', [''])[0]
+            if parsed.path.startswith('/embed/'):
+                return parsed.path.split('/embed/', 1)[1].split('/')[0]
+            if parsed.path.startswith('/live/'):
+                return parsed.path.split('/live/', 1)[1].split('/')[0]
+            if parsed.path.startswith('/shorts/'):
+                return parsed.path.split('/shorts/', 1)[1].split('/')[0]
+        return ''
+
+    @property
+    def embed_url(self):
+        video_id = self.youtube_video_id
+        if not video_id:
+            return ''
+        return f'https://www.youtube.com/embed/{video_id}?autoplay=1&rel=0'

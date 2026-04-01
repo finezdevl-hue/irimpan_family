@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import Group
-from .models import Person, Event, GalleryPhoto, SiteAd
+from .models import Person, Event, GalleryPhoto, SiteAd, LiveStreamSettings
 
 
 class MultiFileInput(forms.ClearableFileInput):
@@ -257,36 +257,82 @@ class SiteAdForm(forms.ModelForm):
             'image',
             'button_text',
             'button_url',
+            'display_type',
+            'priority',
+            'start_date',
+            'end_date',
+            'is_active',
+            'show_as_popup',
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ad title'}),
             'button_text': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Button text'}),
             'button_url': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://example.com'}),
+            'display_type': forms.Select(attrs={'class': 'form-input'}),
+            'priority': forms.NumberInput(attrs={'class': 'form-input', 'min': 0, 'placeholder': '0'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
+            'show_as_popup': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
         }
         labels = {
             'button_text': 'Button Text',
             'button_url': 'Button URL',
+            'display_type': 'Display Type',
+            'priority': 'Priority',
+            'start_date': 'Date From',
+            'end_date': 'Date To',
+            'is_active': 'Ad Active',
+            'show_as_popup': 'Popup Active',
         }
 
     def clean(self):
         cleaned_data = super().clean()
         button_text = (cleaned_data.get('button_text') or '').strip()
         button_url = (cleaned_data.get('button_url') or '').strip()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        display_type = cleaned_data.get('display_type')
+        show_as_popup = cleaned_data.get('show_as_popup')
 
         if button_text and not button_url:
             self.add_error('button_url', 'Enter a button URL when button text is provided.')
         if button_url and not button_text:
             self.add_error('button_text', 'Enter button text when button URL is provided.')
+        if start_date and end_date and end_date < start_date:
+            self.add_error('end_date', 'Date To cannot be earlier than Date From.')
+        if display_type == SiteAd.DISPLAY_POPUP and not show_as_popup:
+            self.add_error('show_as_popup', 'Popup ads need Popup Active enabled to appear on the homepage.')
 
         return cleaned_data
 
     def save(self, commit=True):
         ad = super().save(commit=False)
         ad.message = ''
-        ad.is_active = True
-        ad.show_as_popup = True
-        ad.start_date = None
-        ad.end_date = None
         if commit:
             ad.save()
         return ad
+
+
+class LiveStreamSettingsForm(forms.ModelForm):
+    class Meta:
+        model = LiveStreamSettings
+        fields = ['title', 'youtube_url', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Live Stream Title'}),
+            'youtube_url': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://www.youtube.com/watch?v=...'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
+        }
+        labels = {
+            'youtube_url': 'YouTube Live Link',
+            'is_active': 'Live Stream Active',
+        }
+
+    def clean_youtube_url(self):
+        url = (self.cleaned_data.get('youtube_url') or '').strip()
+        if not url:
+            return ''
+        temp = LiveStreamSettings(youtube_url=url)
+        if not temp.youtube_video_id:
+            raise forms.ValidationError('Enter a valid YouTube watch, live, share, or embed link.')
+        return url

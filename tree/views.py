@@ -6,8 +6,16 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.validators import validate_email
 from django.db import transaction
 from django.utils.dateparse import parse_date
-from .models import Person, Event, GalleryPhoto
-from .forms import PersonForm, MemberCSVUploadForm, AdminLoginForm, EventForm, GalleryPhotoForm
+from .models import Person, Event, GalleryPhoto, SiteAd
+from .forms import (
+    PersonForm,
+    MemberCSVUploadForm,
+    MemberAccountForm,
+    AdminLoginForm,
+    EventForm,
+    GalleryPhotoForm,
+    SiteAdForm,
+)
 import csv
 import io
 import json
@@ -37,11 +45,16 @@ def _can_manage_gallery(user):
     return _is_admin_user(user) or user.has_perm('tree.add_galleryphoto')
 
 
+def _can_manage_ads(user):
+    return _can_access_admin_panel(user)
+
+
 def _admin_context(request, **extra):
     context = {
         'can_manage_members': _can_manage_members(request.user),
         'can_manage_events': _can_manage_events(request.user),
         'can_manage_gallery': _can_manage_gallery(request.user),
+        'can_manage_ads': _can_manage_ads(request.user),
         'is_admin_user': _is_admin_user(request.user),
         'is_family_member_user': _is_family_member_user(request.user),
     }
@@ -53,6 +66,7 @@ admin_required = user_passes_test(_can_access_admin_panel, login_url='admin_logi
 members_required = user_passes_test(_can_manage_members, login_url='admin_login')
 events_required = user_passes_test(_can_manage_events, login_url='admin_login')
 gallery_required = user_passes_test(_can_manage_gallery, login_url='admin_login')
+ads_required = user_passes_test(_can_manage_ads, login_url='admin_login')
 
 
 def home(request):
@@ -79,12 +93,16 @@ def home(request):
         },
     ]
     upcoming_events = Event.objects.all()[:3]
+    popup_ad = SiteAd.objects.filter(is_active=True, show_as_popup=True).order_by('-created_at').first()
+    if popup_ad and not popup_ad.is_currently_visible:
+        popup_ad = next((ad for ad in SiteAd.objects.filter(is_active=True, show_as_popup=True).order_by('-created_at') if ad.is_currently_visible), None)
     return render(request, 'tree/home.html', {
         'people': people,
         'total': total,
         'generations': generations,
         'mentors': mentors,
         'upcoming_events': upcoming_events,
+        'popup_ad': popup_ad,
     })
 
 
@@ -194,17 +212,21 @@ def admin_panel(request):
 
     people_count = Person.objects.count()
     event_count = Event.objects.count()
+    ad_count = SiteAd.objects.count()
     gallery_count = GalleryPhoto.objects.count()
     recent_people = Person.objects.all()[:5]
     recent_events = Event.objects.all()[:5]
+    recent_ads = SiteAd.objects.all()[:5]
     recent_gallery = GalleryPhoto.objects.all()[:5]
     return render(request, 'tree/admin_dashboard.html', _admin_context(
         request,
         people_count=people_count,
         event_count=event_count,
+        ad_count=ad_count,
         gallery_count=gallery_count,
         recent_people=recent_people,
         recent_events=recent_events,
+        recent_ads=recent_ads,
         recent_gallery=recent_gallery,
     ))
 
@@ -213,6 +235,44 @@ def admin_panel(request):
 def admin_members(request):
     people = Person.objects.all()
     return render(request, 'tree/admin_members.html', _admin_context(request, people=people))
+
+
+@members_required
+def admin_member_users(request):
+    selected_member = None
+    if request.method == 'POST':
+        form = MemberAccountForm(request.POST)
+        if form.is_valid():
+            member = form.save()
+            if form.cleaned_data.get('allow_dashboard_login'):
+                messages.success(request, f'Login account updated for {member.full_name}.')
+            else:
+                messages.success(request, f'Login access removed for {member.full_name}.')
+            return redirect('admin_member_users')
+        selected_member = form.cleaned_data.get('member')
+    else:
+        member_id = request.GET.get('member')
+        initial = {}
+        if member_id:
+            try:
+                selected_member = Person.objects.get(pk=member_id)
+            except Person.DoesNotExist:
+                selected_member = None
+        if selected_member:
+            initial = {
+                'member': selected_member,
+                'allow_dashboard_login': bool(selected_member.user),
+                'login_username': selected_member.user.username if selected_member.user else '',
+            }
+        form = MemberAccountForm(initial=initial)
+
+    people = Person.objects.select_related('user').all()
+    return render(request, 'tree/admin_member_users.html', _admin_context(
+        request,
+        form=form,
+        people=people,
+        selected_member=selected_member,
+    ))
 
 
 @members_required
@@ -293,6 +353,54 @@ def admin_gallery(request):
         return redirect('admin_gallery_add')
     gallery_items = GalleryPhoto.objects.all()
     return render(request, 'tree/admin_gallery.html', _admin_context(request, gallery_items=gallery_items))
+
+
+@ads_required
+def admin_ads(request):
+    if _is_family_member_user(request.user) and not _is_admin_user(request.user):
+        return redirect('admin_ad_add')
+    ads = SiteAd.objects.select_related('created_by').all()
+    return render(request, 'tree/admin_ads.html', _admin_context(request, ads=ads))
+
+
+@ads_required
+def admin_ad_add(request):
+    if request.method == 'POST':
+        form = SiteAdForm(request.POST, request.FILES)
+        if form.is_valid():
+            ad = form.save(commit=False)
+            ad.created_by = request.user
+            ad.save()
+            messages.success(request, f'{ad.title} ad posted successfully.')
+            return redirect('admin_ads')
+    else:
+        form = SiteAdForm()
+    return render(request, 'tree/admin_ad_form.html', _admin_context(request, form=form, action='Add'))
+
+
+@members_required
+def admin_ad_edit(request, pk):
+    ad = get_object_or_404(SiteAd, pk=pk)
+    if request.method == 'POST':
+        form = SiteAdForm(request.POST, request.FILES, instance=ad)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'{ad.title} ad updated successfully.')
+            return redirect('admin_ads')
+    else:
+        form = SiteAdForm(instance=ad)
+    return render(request, 'tree/admin_ad_form.html', _admin_context(request, form=form, action='Edit', ad=ad))
+
+
+@members_required
+def admin_ad_delete(request, pk):
+    ad = get_object_or_404(SiteAd, pk=pk)
+    if request.method == 'POST':
+        title = ad.title
+        ad.delete()
+        messages.success(request, f'{title} ad deleted successfully.')
+        return redirect('admin_ads')
+    return render(request, 'tree/admin_ad_delete.html', _admin_context(request, ad=ad))
 
 
 @gallery_required

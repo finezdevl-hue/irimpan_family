@@ -7,7 +7,10 @@
     <h1 class="section-title">Manage Members</h1>
     <p>Add, edit, and remove family members.</p>
   </div>
-  <a href="{% url 'admin_member_add' %}" class="btn btn-primary">Add Member</a>
+  <div class="admin-actions">
+    <a href="{% url 'admin_member_users' %}" class="btn btn-secondary">Manage Member Users</a>
+    <a href="{% url 'admin_member_add' %}" class="btn btn-primary">Add Member</a>
+  </div>
 </div>
 <div class="admin-table-wrap">
   <table class="admin-table">
@@ -28,6 +31,7 @@
           {% endif %}
         </td>
         <td class="admin-actions">
+          <a href="{% url 'admin_member_users' %}?member={{ person.pk }}" class="btn btn-secondary">Login</a>
           <a href="{% url 'admin_member_edit' person.pk %}" class="btn btn-secondary">Edit</a>
           <a href="{% url 'admin_member_delete' person.pk %}" class="btn btn-danger">Delete</a>
         </td>

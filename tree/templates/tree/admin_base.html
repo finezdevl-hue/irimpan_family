@@ -128,10 +128,16 @@
       <a href="{% url 'admin_panel' %}">Dashboard</a>
       {% if can_manage_members %}
       <a href="{% url 'admin_members' %}">Members</a>
+      <a href="{% url 'admin_member_users' %}">Member Users</a>
       {% endif %}
       {% if can_manage_events %}
       <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_event_add' %}{% else %}{% url 'admin_events' %}{% endif %}">
         {% if is_family_member_user and not is_admin_user %}Add Upcoming Event{% else %}Upcoming Events{% endif %}
+      </a>
+      {% endif %}
+      {% if can_manage_ads %}
+      <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_ad_add' %}{% else %}{% url 'admin_ads' %}{% endif %}">
+        {% if is_family_member_user and not is_admin_user %}Post Popup Ad{% else %}Popup Ads{% endif %}
       </a>
       {% endif %}
       {% if can_manage_gallery %}

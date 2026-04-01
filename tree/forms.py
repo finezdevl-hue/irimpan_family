@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import Group
-from .models import Person, Event, GalleryPhoto
+from .models import Person, Event, GalleryPhoto, SiteAd
 
 
 class MultiFileInput(forms.ClearableFileInput):
@@ -15,23 +15,6 @@ class EventChoiceField(forms.ModelChoiceField):
 
 
 class PersonForm(forms.ModelForm):
-    allow_dashboard_login = forms.BooleanField(
-        required=False,
-        label='Dashboard Login Access',
-    )
-    login_username = forms.CharField(
-        required=False,
-        max_length=150,
-        label='Login Username',
-        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Username for this member'}),
-    )
-    login_password = forms.CharField(
-        required=False,
-        label='Login Password',
-        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Set or reset password'}),
-        help_text='Required when creating a new member login. Leave blank during edit to keep the current password.',
-    )
-
     class Meta:
         model = Person
         fields = ['first_name', 'last_name', 'gender', 'birth_date',
@@ -78,11 +61,34 @@ class PersonForm(forms.ModelForm):
         self.fields['first_name'].required = True
         self.fields['last_name'].required = True
 
-        linked_user = getattr(instance, 'user', None)
-        if linked_user:
-            self.fields['allow_dashboard_login'].initial = True
-            self.fields['login_username'].initial = linked_user.username
-            self.fields['login_password'].help_text = 'Leave blank to keep the current password, or enter a new one to reset it.'
+
+class MemberAccountForm(forms.Form):
+    member = forms.ModelChoiceField(
+        queryset=Person.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-input'}),
+        label='Family Member',
+    )
+    allow_dashboard_login = forms.BooleanField(
+        required=False,
+        label='Enable Member Login',
+    )
+    login_username = forms.CharField(
+        required=False,
+        max_length=150,
+        label='Login Username',
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Username for this member'}),
+    )
+    login_password = forms.CharField(
+        required=False,
+        label='Login Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Set or reset password'}),
+        help_text='Required when creating a new member login. Leave blank to keep the existing password.',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['member'].queryset = Person.objects.all().order_by('last_name', 'first_name')
+        self.fields['member'].empty_label = 'Select a member'
 
     def clean_login_username(self):
         username = (self.cleaned_data.get('login_username') or '').strip()
@@ -90,11 +96,12 @@ class PersonForm(forms.ModelForm):
             return ''
 
         User = get_user_model()
+        selected_member = self.cleaned_data.get('member')
         existing_user = User.objects.filter(username__iexact=username).first()
-        current_user = getattr(self.instance, 'user', None)
+        current_user = getattr(selected_member, 'user', None) if selected_member else None
         if existing_user and existing_user != current_user:
             linked_person = getattr(existing_user, 'family_member_profile', None)
-            if linked_person and linked_person != self.instance:
+            if linked_person and linked_person != selected_member:
                 raise forms.ValidationError('This username is already linked to another family member.')
             if existing_user.is_staff or existing_user.is_superuser:
                 raise forms.ValidationError('This username is already reserved for an admin account.')
@@ -102,6 +109,7 @@ class PersonForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        member = cleaned_data.get('member')
         allow_dashboard_login = cleaned_data.get('allow_dashboard_login')
         username = (cleaned_data.get('login_username') or '').strip()
         password = cleaned_data.get('login_password') or ''
@@ -109,55 +117,59 @@ class PersonForm(forms.ModelForm):
         if allow_dashboard_login and not username:
             self.add_error('login_username', 'Enter a username to enable member login.')
 
-        if allow_dashboard_login and not getattr(self.instance, 'user', None) and not password:
+        if allow_dashboard_login and member and not getattr(member, 'user', None) and not password:
             self.add_error('login_password', 'Enter a password for the new member login.')
 
         return cleaned_data
 
-    def save(self, commit=True):
-        person = super().save(commit=commit)
-        if commit:
-            self._save_member_login(person)
-        return person
+    def save(self):
+        member = self.cleaned_data['member']
+        save_member_login(
+            person=member,
+            allow_dashboard_login=self.cleaned_data.get('allow_dashboard_login'),
+            username=self.cleaned_data.get('login_username'),
+            password=self.cleaned_data.get('login_password'),
+        )
+        return member
 
-    def _save_member_login(self, person):
-        allow_dashboard_login = self.cleaned_data.get('allow_dashboard_login')
-        username = (self.cleaned_data.get('login_username') or '').strip()
-        password = self.cleaned_data.get('login_password') or ''
-        current_user = person.user
 
-        if not allow_dashboard_login:
-            if current_user:
-                family_group, _ = Group.objects.get_or_create(name='family_member')
-                current_user.groups.remove(family_group)
-                current_user.is_active = False
-                current_user.save(update_fields=['is_active'])
-                person.user = None
-                person.save(update_fields=['user'])
-            return
+def save_member_login(*, person, allow_dashboard_login, username, password):
+    username = (username or '').strip()
+    password = password or ''
+    current_user = person.user
 
-        User = get_user_model()
-        user = User.objects.filter(username__iexact=username).first()
-        if user is None:
-            user = current_user or User(username=username)
-
-        user.username = username
-        user.first_name = person.first_name
-        user.last_name = person.last_name
-        user.email = person.email
-        user.is_active = True
-        if password:
-            user.set_password(password)
-        elif user.pk is None:
-            user.set_unusable_password()
-        user.save()
-
-        family_group, _ = Group.objects.get_or_create(name='family_member')
-        user.groups.add(family_group)
-
-        if person.user_id != user.pk:
-            person.user = user
+    if not allow_dashboard_login:
+        if current_user:
+            family_group, _ = Group.objects.get_or_create(name='family_member')
+            current_user.groups.remove(family_group)
+            current_user.is_active = False
+            current_user.save(update_fields=['is_active'])
+            person.user = None
             person.save(update_fields=['user'])
+        return
+
+    User = get_user_model()
+    user = User.objects.filter(username__iexact=username).first()
+    if user is None:
+        user = current_user or User(username=username)
+
+    user.username = username
+    user.first_name = person.first_name
+    user.last_name = person.last_name
+    user.email = person.email
+    user.is_active = True
+    if password:
+        user.set_password(password)
+    elif user.pk is None:
+        user.set_unusable_password()
+    user.save()
+
+    family_group, _ = Group.objects.get_or_create(name='family_member')
+    user.groups.add(family_group)
+
+    if person.user_id != user.pk:
+        person.user = user
+        person.save(update_fields=['user'])
 
 
 class MemberCSVUploadForm(forms.Form):
@@ -235,3 +247,46 @@ class GalleryPhotoForm(forms.ModelForm):
         self.fields['event_date'].required = False
         self.fields['event_name'].widget.attrs['readonly'] = True
         self.fields['event_date'].widget.attrs['readonly'] = True
+
+
+class SiteAdForm(forms.ModelForm):
+    class Meta:
+        model = SiteAd
+        fields = [
+            'title',
+            'image',
+            'button_text',
+            'button_url',
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ad title'}),
+            'button_text': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Button text'}),
+            'button_url': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://example.com'}),
+        }
+        labels = {
+            'button_text': 'Button Text',
+            'button_url': 'Button URL',
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        button_text = (cleaned_data.get('button_text') or '').strip()
+        button_url = (cleaned_data.get('button_url') or '').strip()
+
+        if button_text and not button_url:
+            self.add_error('button_url', 'Enter a button URL when button text is provided.')
+        if button_url and not button_text:
+            self.add_error('button_text', 'Enter button text when button URL is provided.')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        ad = super().save(commit=False)
+        ad.message = ''
+        ad.is_active = True
+        ad.show_as_popup = True
+        ad.start_date = None
+        ad.end_date = None
+        if commit:
+            ad.save()
+        return ad

@@ -1,0 +1,50 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Popup Ads - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Manage Popup Ads</h1>
+    <p>
+      {% if is_admin_user %}
+      Post, edit, and remove popup ads that appear when the site opens.
+      {% else %}
+      Post new popup ads. Editing and deleting stay with admin users.
+      {% endif %}
+    </p>
+  </div>
+  <a href="{% url 'admin_ad_add' %}" class="btn btn-primary">Post Ad</a>
+</div>
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr><th>Title</th><th>Created By</th><th>Status</th><th>Schedule</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for ad in ads %}
+      <tr>
+        <td>{{ ad.title }}</td>
+        <td>{% if ad.created_by %}{{ ad.created_by.username }}{% else %}-{% endif %}</td>
+        <td>
+          {% if ad.is_active %}Active{% else %}Inactive{% endif %}
+          {% if not ad.show_as_popup %} / Hidden{% endif %}
+        </td>
+        <td>
+          {{ ad.start_date|default:"Now" }} to {{ ad.end_date|default:"Until removed" }}
+        </td>
+        <td class="admin-actions">
+          {% if is_admin_user %}
+          <a href="{% url 'admin_ad_edit' ad.pk %}" class="btn btn-secondary">Edit</a>
+          <a href="{% url 'admin_ad_delete' ad.pk %}" class="btn btn-danger">Delete</a>
+          {% else %}
+          <span class="muted">Add-only access</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No popup ads found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

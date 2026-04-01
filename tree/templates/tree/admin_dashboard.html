@@ -7,9 +7,9 @@
     <h1 class="section-title">Dashboard</h1>
     <p>
       {% if is_family_member_user %}
-      Choose where you want to contribute. Member logins can only add upcoming events and event gallery photos.
+      Choose where you want to contribute. Member logins can add upcoming events, popup ads, and event gallery photos.
       {% else %}
-      Overview of members and events in the custom admin panel.
+      Overview of members, popup ads, and events in the custom admin panel.
       {% endif %}
     </p>
   </div>
@@ -22,6 +22,13 @@
     <strong>Add</strong>
     <div class="admin-actions" style="margin-top:1rem;">
       <a href="{% url 'admin_event_add' %}" class="btn btn-primary">Add Event</a>
+    </div>
+  </div>
+  <div class="admin-stat">
+    <span>Popup Ads</span>
+    <strong>Add</strong>
+    <div class="admin-actions" style="margin-top:1rem;">
+      <a href="{% url 'admin_ad_add' %}" class="btn btn-primary">Post Ad</a>
     </div>
   </div>
   <div class="admin-stat">
@@ -43,6 +50,10 @@
     <strong>{{ event_count }}</strong>
   </div>
   <div class="admin-stat">
+    <span>Popup Ads</span>
+    <strong>{{ ad_count }}</strong>
+  </div>
+  <div class="admin-stat">
     <span>Gallery Photos</span>
     <strong>{{ gallery_count }}</strong>
   </div>
@@ -53,7 +64,10 @@
 {% if can_manage_members %}
 <div class="admin-head">
   <div><h2 class="section-title">Recent Members</h2></div>
-  <a href="{% url 'admin_member_add' %}" class="btn btn-primary">Add Member</a>
+  <div class="admin-actions">
+    <a href="{% url 'admin_member_users' %}" class="btn btn-secondary">Manage Member Users</a>
+    <a href="{% url 'admin_member_add' %}" class="btn btn-primary">Add Member</a>
+  </div>
 </div>
 <div class="admin-table-wrap">
   <table class="admin-table">
@@ -97,6 +111,39 @@
       </tr>
       {% empty %}
       <tr><td colspan="3">No events found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+{% endif %}
+
+{% if can_manage_ads %}
+<div class="admin-head">
+  <div><h2 class="section-title">Recent Popup Ads</h2></div>
+  <a href="{% url 'admin_ad_add' %}" class="btn btn-primary">Post Ad</a>
+</div>
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead><tr><th>Title</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for ad in recent_ads %}
+      <tr>
+        <td>{{ ad.title }}</td>
+        <td>
+          {% if ad.is_active %}Active{% else %}Inactive{% endif %}
+        </td>
+        <td class="admin-actions">
+          {% if is_admin_user %}
+          <a href="{% url 'admin_ad_edit' ad.pk %}" class="btn btn-secondary">Edit</a>
+          {% else %}
+          <span class="muted">View only</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No popup ads found.</td></tr>
       {% endfor %}
     </tbody>
   </table>

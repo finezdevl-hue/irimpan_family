@@ -1,0 +1,148 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Member Users - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface2);
+  }
+  .checkbox-field input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--gold);
+  }
+  .checkbox-copy {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+  }
+  .checkbox-copy strong {
+    display: block;
+    color: var(--cream);
+    margin-bottom: 0.2rem;
+  }
+  .page-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .status-pill.active {
+    color: #0f5132;
+    background: #d1e7dd;
+    border-color: #badbcc;
+  }
+  .status-pill.inactive {
+    color: var(--text-dim);
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Member Users</h1>
+    <p>Select a family member and assign a username and password for dashboard login.</p>
+  </div>
+</div>
+
+<div class="page-grid">
+  <form method="post" class="card">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.member.id_for_label }}">{{ form.member.label }}</label>
+      {{ form.member }}
+      {% if form.member.errors %}<div class="message">{{ form.member.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <div class="checkbox-field">
+        {{ form.allow_dashboard_login }}
+        <div class="checkbox-copy">
+          <strong>Enable Member Login</strong>
+          <span>Turn this on to let the selected member sign in to the custom admin panel.</span>
+        </div>
+      </div>
+      {% if form.allow_dashboard_login.errors %}<div class="message">{{ form.allow_dashboard_login.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.login_username.id_for_label }}">{{ form.login_username.label }}</label>
+      {{ form.login_username }}
+      {% if form.login_username.help_text %}<small class="muted">{{ form.login_username.help_text }}</small>{% endif %}
+      {% if form.login_username.errors %}<div class="message">{{ form.login_username.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.login_password.id_for_label }}">{{ form.login_password.label }}</label>
+      {{ form.login_password }}
+      {% if form.login_password.help_text %}<small class="muted">{{ form.login_password.help_text }}</small>{% endif %}
+      {% if form.login_password.errors %}<div class="message">{{ form.login_password.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="message">{{ form.non_field_errors|join:", " }}</div>
+    {% endif %}
+
+    <div class="admin-actions">
+      <button type="submit" class="btn btn-primary">Save Member User</button>
+      <a href="{% url 'admin_members' %}" class="btn btn-secondary">Back to Members</a>
+    </div>
+  </form>
+
+  <div class="card">
+    <div class="admin-head">
+      <div>
+        <h2 class="section-title">Existing Member Logins</h2>
+        <p>Members with active dashboard usernames are shown below.</p>
+      </div>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr><th>Member</th><th>Username</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for person in people %}
+          <tr>
+            <td>{{ person.full_name }}</td>
+            <td>{% if person.user %}{{ person.user.username }}{% else %}-{% endif %}</td>
+            <td>
+              {% if person.user %}
+              <span class="status-pill {% if person.user.is_active %}active{% else %}inactive{% endif %}">
+                {% if person.user.is_active %}Enabled{% else %}Disabled{% endif %}
+              </span>
+              {% else %}
+              <span class="status-pill inactive">No Login</span>
+              {% endif %}
+            </td>
+            <td class="admin-actions">
+              <a href="{% url 'admin_member_users' %}?member={{ person.pk }}" class="btn btn-secondary">
+                {% if person.user %}Edit Login{% else %}Create Login{% endif %}
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4">No members found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

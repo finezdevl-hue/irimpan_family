@@ -7,7 +7,7 @@
     <h1 class="section-title">Dashboard</h1>
     <p>
       {% if is_family_member_user %}
-      Choose where you want to contribute. Member logins can add upcoming events, popup ads, and event gallery photos.
+      Choose where you want to contribute. Member logins can add upcoming events, popup ads, live stream links, and event gallery photos.
       {% else %}
       Overview of members, popup ads, and events in the custom admin panel.
       {% endif %}
@@ -36,6 +36,13 @@
     <strong>Add</strong>
     <div class="admin-actions" style="margin-top:1rem;">
       <a href="{% url 'admin_gallery_add' %}" class="btn btn-primary">Add Photo</a>
+    </div>
+  </div>
+  <div class="admin-stat">
+    <span>Live Stream</span>
+    <strong>Update</strong>
+    <div class="admin-actions" style="margin-top:1rem;">
+      <a href="{% url 'admin_live_stream' %}" class="btn btn-primary">Manage Stream</a>
     </div>
   </div>
 </div>

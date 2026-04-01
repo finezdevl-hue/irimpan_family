@@ -105,6 +105,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
+      cursor: pointer;
     }
 
     .nav-dropdown-menu {
@@ -126,8 +127,7 @@
       padding: 0.55rem 0.8rem;
     }
 
-    .nav-dropdown:hover .nav-dropdown-menu,
-    .nav-dropdown:focus-within .nav-dropdown-menu {
+    .nav-dropdown.is-open .nav-dropdown-menu {
       display: block;
     }
 
@@ -209,13 +209,16 @@
       .nav-links a { padding: 0.6rem 1rem; font-size: 1rem; }
       .nav-dropdown { width: 100%; }
       .nav-dropdown-menu {
-        display: block;
+        display: none;
         position: static;
         border: 0;
         box-shadow: none;
         padding: 0 0 0 0.75rem;
         min-width: 0;
         background: transparent;
+      }
+      .nav-dropdown.is-open .nav-dropdown-menu {
+        display: block;
       }
     }
 
@@ -412,8 +415,63 @@
 
   <script>
     function toggleNav() {
-      document.getElementById('navLinks').classList.toggle('open');
+      const navLinks = document.getElementById('navLinks');
+      const isOpen = navLinks.classList.toggle('open');
+      if (!isOpen) {
+        closeAllDropdowns();
+      }
     }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.nav-dropdown').forEach((dropdown) => {
+        dropdown.classList.remove('is-open');
+      });
+    }
+
+    document.querySelectorAll('.nav-dropdown').forEach((dropdown) => {
+      const trigger = dropdown.querySelector('.nav-dropbtn');
+      if (!trigger) {
+        return;
+      }
+
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (!dropdown.classList.contains('is-open')) {
+          closeAllDropdowns();
+          dropdown.classList.add('is-open');
+          return;
+        }
+
+        dropdown.classList.remove('is-open');
+      });
+    });
+
+    document.querySelectorAll('.nav-dropdown-menu a').forEach((link) => {
+      link.addEventListener('click', () => {
+        closeAllDropdowns();
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.nav-dropdown') && !event.target.closest('.hamburger')) {
+        closeAllDropdowns();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeAllDropdowns();
+        document.getElementById('navLinks').classList.remove('open');
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 760) {
+        closeAllDropdowns();
+        document.getElementById('navLinks').classList.remove('open');
+      }
+    });
   </script>
   {% block extra_js %}{% endblock %}
 </body>

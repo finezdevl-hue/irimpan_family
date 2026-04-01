@@ -51,7 +51,7 @@ def _can_manage_ads(user):
 
 
 def _can_manage_live_stream(user):
-    return _is_admin_user(user)
+    return _can_access_admin_panel(user)
 
 
 def _admin_context(request, **extra):

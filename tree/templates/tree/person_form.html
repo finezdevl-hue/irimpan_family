@@ -43,6 +43,60 @@
     border: 2px solid var(--border);
     margin-bottom: 0.5rem;
   }
+  .photo-cropper {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .crop-stage {
+    position: relative;
+    width: min(100%, 360px);
+    aspect-ratio: 1 / 1;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 12px, transparent 12px, transparent 24px), var(--surface2);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .crop-stage img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    user-select: none;
+    -webkit-user-drag: none;
+    cursor: grab;
+    transform-origin: top left;
+    max-width: none;
+  }
+  .crop-stage.dragging img {
+    cursor: grabbing;
+  }
+  .crop-stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(201, 168, 76, 0.28);
+    pointer-events: none;
+  }
+  .crop-controls {
+    display: grid;
+    gap: 0.6rem;
+    width: min(100%, 360px);
+  }
+  .crop-controls label {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .crop-controls input[type="range"] {
+    width: 100%;
+  }
+  .crop-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
   .form-actions {
     display: flex;
     gap: 0.75rem;
@@ -110,7 +164,7 @@
   <div class="form-header">
     <a href="{% url 'home' %}" style="color:var(--text-dim);text-decoration:none;font-size:0.9rem;">&larr; Back</a>
     <h1 class="section-title" style="margin-top:0.75rem;">{{ action }} Family Member</h1>
-    <p class="section-sub">Fill in the details below. Only first and last name are required.</p>
+    <p class="section-sub">Fill in the details below. Only first name is required.</p>
   </div>
 
   <div class="card">
@@ -126,9 +180,15 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Last Name *</label>
+          <label class="form-label">Last Name</label>
           {{ form.last_name }}
           {% if form.last_name.errors %}<ul class="errorlist">{% for e in form.last_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Family</label>
+          {{ form.family }}
+          {% if form.family.errors %}<ul class="errorlist">{% for e in form.family.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
         </div>
 
         <div class="form-group">
@@ -195,6 +255,33 @@
           {% endif %}
           <label class="form-label">Profile Photo</label>
           {{ form.photo }}
+          {% if form.photo.help_text %}<small style="color:var(--text-dim);font-size:0.8rem;">{{ form.photo.help_text }}</small>{% endif %}
+          <div class="photo-cropper" data-photo-cropper>
+            <div class="crop-stage" data-crop-stage style="display:none;">
+              <img data-crop-image alt="Photo crop preview">
+            </div>
+            <div class="crop-controls" style="display:none;" data-crop-controls>
+              <label>Zoom
+                <input type="range" min="1" max="3" step="0.01" value="1" data-crop-zoom>
+              </label>
+              <div class="crop-actions">
+                <button type="button" class="btn btn-secondary" data-crop-reset>Reset Crop</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section-title">Family Photo</div>
+
+        <div class="form-group form-full">
+          {% if person and person.family and person.family.photo %}
+            <img src="{{ person.family.photo.url }}" class="photo-preview" alt="Current family photo">
+            <br>
+          {% endif %}
+          <label class="form-label">Family Photo</label>
+          {{ form.family_photo }}
+          {% if form.family_photo.help_text %}<small style="color:var(--text-dim);font-size:0.8rem;">{{ form.family_photo.help_text }}</small>{% endif %}
+          {% if form.family_photo.errors %}<ul class="errorlist">{% for e in form.family_photo.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
         </div>
 
         <div class="form-section-title">Biography</div>
@@ -221,6 +308,21 @@
           <label class="form-label">Spouse / Partner</label>
           {{ form.spouse }}
         </div>
+
+        <div class="checkbox-row">
+          {{ form.has_multiple_spouses }}
+          <div class="checkbox-text">
+            <strong>Multiple Spouses</strong>
+            <span>Turn this on when the member needs more than one spouse or partner linked.</span>
+          </div>
+        </div>
+
+        <div class="form-group form-full" id="additionalSpousesGroup">
+          <label class="form-label">Additional Spouses</label>
+          {{ form.additional_spouses }}
+          {% if form.additional_spouses.help_text %}<small style="color:var(--text-dim);font-size:0.8rem;">{{ form.additional_spouses.help_text }}</small>{% endif %}
+          {% if form.additional_spouses.errors %}<ul class="errorlist">{% for e in form.additional_spouses.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
       </div>
 
       <div class="form-actions">
@@ -235,6 +337,158 @@
 {% block extra_js %}
 <script>
   (function () {
+    function initPhotoCropper() {
+      const input = document.getElementById("id_photo");
+      const cropper = document.querySelector("[data-photo-cropper]");
+      if (!input || !cropper || input.dataset.cropReady === "1") return;
+      input.dataset.cropReady = "1";
+
+      const stage = cropper.querySelector("[data-crop-stage]");
+      const image = cropper.querySelector("[data-crop-image]");
+      const controls = cropper.querySelector("[data-crop-controls]");
+      const zoomInput = cropper.querySelector("[data-crop-zoom]");
+      const resetBtn = cropper.querySelector("[data-crop-reset]");
+      const ctx = document.createElement("canvas").getContext("2d");
+
+      let file = null;
+      let url = "";
+      let imgWidth = 0;
+      let imgHeight = 0;
+      let stageSize = 0;
+      let zoom = 1;
+      let offsetX = 0;
+      let offsetY = 0;
+      let baseScale = 1;
+      let dragging = false;
+      let dragStart = null;
+
+      function getStageSize() {
+        const rect = stage.getBoundingClientRect();
+        return rect.width || 360;
+      }
+
+      function updateImage() {
+        if (!imgWidth || !imgHeight) return;
+        stageSize = getStageSize();
+        const renderW = imgWidth * baseScale * zoom;
+        const renderH = imgHeight * baseScale * zoom;
+        image.style.width = `${renderW}px`;
+        image.style.height = `${renderH}px`;
+        image.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      }
+
+      function centerImage() {
+        stageSize = getStageSize();
+        baseScale = Math.max(stageSize / imgWidth, stageSize / imgHeight);
+        zoom = 1;
+        const renderW = imgWidth * baseScale * zoom;
+        const renderH = imgHeight * baseScale * zoom;
+        offsetX = Math.round((stageSize - renderW) / 2);
+        offsetY = Math.round((stageSize - renderH) / 2);
+        zoomInput.value = "1";
+        updateImage();
+      }
+
+      function loadFromUrl(dataUrl) {
+        const temp = new Image();
+        temp.onload = function () {
+          imgWidth = temp.naturalWidth;
+          imgHeight = temp.naturalHeight;
+          image.src = dataUrl;
+          stage.style.display = "";
+          controls.style.display = "";
+          centerImage();
+        };
+        temp.src = dataUrl;
+      }
+
+      function rebuildPreview(selectedFile) {
+        file = selectedFile;
+        if (!file) return;
+        if (url) URL.revokeObjectURL(url);
+        url = URL.createObjectURL(file);
+        loadFromUrl(url);
+      }
+
+      input.addEventListener("change", function () {
+        const selected = input.files && input.files[0];
+        if (!selected) {
+          file = null;
+          delete input.dataset.cropped;
+          stage.style.display = "none";
+          controls.style.display = "none";
+          return;
+        }
+        delete input.dataset.cropped;
+        rebuildPreview(selected);
+      });
+
+      zoomInput.addEventListener("input", function () {
+        zoom = parseFloat(zoomInput.value || "1");
+        updateImage();
+      });
+
+      resetBtn.addEventListener("click", function () {
+        if (!imgWidth || !imgHeight) return;
+        centerImage();
+      });
+
+      stage.addEventListener("mousedown", function (event) {
+        if (!file) return;
+        dragging = true;
+        stage.classList.add("dragging");
+        dragStart = { x: event.clientX, y: event.clientY, ox: offsetX, oy: offsetY };
+      });
+      window.addEventListener("mousemove", function (event) {
+        if (!dragging || !dragStart) return;
+        offsetX = dragStart.ox + (event.clientX - dragStart.x);
+        offsetY = dragStart.oy + (event.clientY - dragStart.y);
+        updateImage();
+      });
+      window.addEventListener("mouseup", function () {
+        dragging = false;
+        stage.classList.remove("dragging");
+      });
+
+      input.form.addEventListener("submit", async function (event) {
+        if (!file || !imgWidth || !imgHeight) return;
+        if (input.dataset.cropped === "1") return;
+        event.preventDefault();
+
+        const outputSize = 900;
+        const output = document.createElement("canvas");
+        output.width = outputSize;
+        output.height = outputSize;
+        const ratio = outputSize / stageSize;
+        const scaled = new Image();
+
+        await new Promise((resolve) => {
+          scaled.onload = resolve;
+          scaled.src = image.src;
+        });
+
+        const scaledWidth = imgWidth * baseScale * zoom;
+        const scaledHeight = imgHeight * baseScale * zoom;
+        const drawX = offsetX * ratio;
+        const drawY = offsetY * ratio;
+        const drawW = scaledWidth * ratio;
+        const drawH = scaledHeight * ratio;
+
+        const outCtx = output.getContext("2d");
+        outCtx.clearRect(0, 0, outputSize, outputSize);
+        outCtx.drawImage(scaled, drawX, drawY, drawW, drawH);
+
+        const blob = await new Promise((resolve) => output.toBlob(resolve, file.type === "image/png" ? "image/png" : "image/jpeg", 0.92));
+        if (!blob) return;
+        const newFile = new File([blob], file.name.replace(/\.[^.]+$/, "") + (file.type === "image/png" ? ".png" : ".jpg"), { type: blob.type });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(newFile);
+        input.files = dataTransfer.files;
+        input.dataset.cropped = "1";
+        input.form.requestSubmit();
+      });
+    }
+
     function initRichText(textarea) {
       if (!textarea || textarea.dataset.richReady === "1") return;
       textarea.dataset.richReady = "1";
@@ -279,6 +533,20 @@
     }
 
     document.querySelectorAll("textarea.rich-text-input").forEach(initRichText);
+    initPhotoCropper();
+
+    const multipleSpousesCheckbox = document.getElementById("id_has_multiple_spouses");
+    const additionalSpousesGroup = document.getElementById("additionalSpousesGroup");
+
+    function syncAdditionalSpousesVisibility() {
+      if (!multipleSpousesCheckbox || !additionalSpousesGroup) return;
+      additionalSpousesGroup.style.display = multipleSpousesCheckbox.checked ? "" : "none";
+    }
+
+    if (multipleSpousesCheckbox) {
+      multipleSpousesCheckbox.addEventListener("change", syncAdditionalSpousesVisibility);
+      syncAdditionalSpousesVisibility();
+    }
   })();
 </script>
 {% endblock %}

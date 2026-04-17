@@ -4,6 +4,30 @@
 <style>
   .tree-page { margin: -2rem -1.5rem; display: flex; flex-direction: column; height: calc(100vh - 64px); }
 
+  .tree-family-label-wrap {
+    overflow: visible;
+    pointer-events: none;
+  }
+  .tree-family-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0.15rem 1rem;
+    border-radius: 999px;
+    background: rgba(255, 252, 244, 0.97);
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    color: #2f2414;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 18px rgba(54, 42, 21, 0.08);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
   .tree-toolbar {
     display: flex;
     align-items: center;
@@ -44,7 +68,8 @@
 
   /* CANVAS */
   #tree-canvas {
-    flex: 1; overflow: hidden; cursor: grab; position: relative;
+    height: 100%;
+    overflow: hidden; cursor: grab; position: relative;
     background-color: var(--bg);
     background-image: linear-gradient(rgba(185, 162, 118, 0.22) 1px, transparent 1px),
                       linear-gradient(90deg, rgba(185, 162, 118, 0.22) 1px, transparent 1px);
@@ -53,7 +78,7 @@
   #tree-canvas:active { cursor: grabbing; }
 
   #tree-svg {
-    position: absolute; top: 0; left: 0;
+    position: absolute; top: 56px; left: 0;
     overflow: visible; transform-origin: 0 0;
   }
 
@@ -151,7 +176,7 @@
 {% block content %}
 <div class="tree-page">
   <div class="tree-toolbar">
-    <h2>🌲 Family Tree</h2>
+    <h2>Family Tree</h2>
     <div class="legend">
       <div class="legend-item"><div class="legend-line ll-parent"></div>Parent–child</div>
       <div class="legend-item"><div class="legend-line ll-spouse"></div>Couple</div>
@@ -202,6 +227,7 @@ const SVG_NS   = 'http://www.w3.org/2000/svg';
 let nodes  = {};   // id → node
 let edges  = [];
 let pos    = {};   // id → {x,y}
+let rootUnits = [];
 let svgEl, canvas;
 let scale = 1, px = 0, py = 0;
 let panning = false, ps = {x:0,y:0};
@@ -301,6 +327,20 @@ function doLayout() {
   }
   units.forEach((_,i) => calcW(i));
 
+  const unitH = {};
+  function calcH(i) {
+    if (unitH[i] !== undefined) return unitH[i];
+    const u = units[i];
+    if (!u.children.length) return (unitH[i] = NH);
+    let childH = 0;
+    u.children.forEach(c => {
+      const ci = unitOf[c];
+      childH = Math.max(childH, ci != null ? calcH(ci) : NH);
+    });
+    return (unitH[i] = NH + GENGAP + childH);
+  }
+  units.forEach((_,i) => calcH(i));
+
   /* 4. Place top-down */
   const placed = new Set();
 
@@ -336,13 +376,21 @@ function doLayout() {
     .map((u,i) => ({u,i}))
     .filter(({u}) => !isChild.has(u.left) && (u.right==null || !isChild.has(u.right)));
 
-  let rx = 40;
-  roots.forEach(({i}) => { placeUnit(i, rx, 40); rx += unitW[i] + SGAP*2; });
+  rootUnits = roots.map(({u, i}) => ({ unit: u, index: i }));
+  let ry = 40;
+  roots.forEach(({i}) => {
+    placeUnit(i, 40, ry);
+    ry += unitH[i] + SGAP * 2;
+  });
 
   // Orphans
-  let ox = rx;
+  let ox = 40;
+  let oy = ry;
   Object.values(nodes).forEach(n => {
-    if (!placed.has(n.id)) { pos[n.id] = {x: ox, y: 40}; ox += NW + SGAP; }
+    if (!placed.has(n.id)) {
+      pos[n.id] = {x: ox, y: oy};
+      oy += NH + SGAP;
+    }
   });
 }
 
@@ -359,7 +407,66 @@ function draw() {
   svgEl.setAttribute('height', my);
 
   drawLines();
+  drawFamilyLabels();
   drawCards();
+}
+
+function drawFamilyLabels() {
+  rootUnits.forEach(({ unit }) => {
+    const label = getFamilyLabel(unit);
+    if (!label) return;
+
+    const leftPos = pos[unit.left];
+    const rightPos = unit.right != null ? pos[unit.right] : null;
+    if (!leftPos) return;
+
+    const centerX = unit.right != null && rightPos
+      ? (leftPos.x + NW + rightPos.x) / 2
+      : leftPos.x + NW / 2;
+    const topY = Math.min(leftPos.y, rightPos ? rightPos.y : leftPos.y);
+    const width = Math.min(240, Math.max(130, label.length * 9 + 36));
+    const x = centerX - width / 2;
+    const y = Math.max(6, topY - 28);
+
+    const fo = mkEl('foreignObject');
+    fo.setAttribute('x', x);
+    fo.setAttribute('y', y);
+    fo.setAttribute('width', width);
+    fo.setAttribute('height', 26);
+    fo.setAttribute('class', 'tree-family-label-wrap');
+    fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml"><div class="tree-family-label">${escapeHtml(label)}</div></div>`;
+    svgEl.appendChild(fo);
+  });
+}
+
+function getFamilyLabel(unit) {
+  const ids = [unit.left];
+  if (unit.right != null) ids.push(unit.right);
+  ids.push(...unit.children);
+
+  for (const id of ids) {
+    const node = nodes[id];
+    if (node && node.family_name) return node.family_name;
+  }
+
+  for (const id of ids) {
+    const node = nodes[id];
+    if (node && node.family_id != null) return node.family_name || node.name;
+  }
+
+  const left = nodes[unit.left];
+  const right = unit.right != null ? nodes[unit.right] : null;
+  if (left && right) return `${left.name} & ${right.name}`;
+  return left ? left.name : '';
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function drawLines() {

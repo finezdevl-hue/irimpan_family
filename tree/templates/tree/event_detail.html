@@ -92,6 +92,39 @@
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 1rem;
   }
+
+  .event-gallery-section {
+    padding: 1.5rem 0 0;
+  }
+
+  .event-photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .event-photo-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .event-photo-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .event-photo-card p {
+    margin: 0;
+    padding: 0.85rem;
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
   .related-card {
     background: #ffffff;
     border: 1px solid var(--border);
@@ -162,6 +195,22 @@
       </div>
     </div>
   </section>
+
+  {% if gallery_photos %}
+  <section class="event-gallery-section">
+    <h2 class="section-title" style="margin-bottom: 1rem;">Event Photos</h2>
+    <div class="event-photos-grid">
+      {% for photo in gallery_photos %}
+      <div class="event-photo-card">
+        <img src="{{ photo.image.url }}" alt="{{ photo.title|default:event.title }}">
+        {% if photo.caption %}
+        <p>{{ photo.caption }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
   {% if other_events %}
   <section>

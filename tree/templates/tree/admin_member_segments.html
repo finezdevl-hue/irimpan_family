@@ -1,0 +1,41 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Groups - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Groups</h1>
+    <p>Separate members into reusable groups for targeting and communication.</p>
+  </div>
+  <div class="admin-actions">
+    <a href="{% url 'admin_member_group_add' %}" class="btn btn-primary">Add Group</a>
+    <a href="{% url 'admin_whatsapp_broadcast' %}" class="btn btn-secondary">Send WhatsApp</a>
+  </div>
+</div>
+
+<div class="admin-head">
+  <div><h2 class="section-title">Groups</h2></div>
+</div>
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead><tr><th>Name</th><th>Status</th><th>Members</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for group in groups %}
+      <tr>
+        <td>{{ group.name }}</td>
+        <td>{% if group.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td>{{ group.people.count }}</td>
+        <td class="admin-actions">
+          <a href="{% url 'admin_member_group_members' group.pk %}" class="btn btn-secondary">Members</a>
+          <a href="{% url 'admin_member_group_edit' group.pk %}" class="btn btn-secondary">Edit</a>
+          <a href="{% url 'admin_member_group_delete' group.pk %}" class="btn btn-danger">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No groups added yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

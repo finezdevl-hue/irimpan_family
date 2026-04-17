@@ -1,0 +1,22 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Delete Hero Image - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Delete Hero Image</h1>
+    <p>This will remove the image from the homepage hero slider.</p>
+  </div>
+</div>
+
+<div class="card">
+  <p>Are you sure you want to delete <strong>{{ hero_image.title }}</strong>?</p>
+  <form method="post" style="margin-top:1rem;">
+    {% csrf_token %}
+    <div class="admin-actions">
+      <button type="submit" class="btn btn-danger">Delete Hero Image</button>
+      <a href="{% url 'admin_hero_images' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

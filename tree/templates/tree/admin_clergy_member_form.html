@@ -1,0 +1,28 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}{{ action }} Clergy Member - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">{{ action }} Clergy Member</h1>
+    <p>Add or update a priest or nun with a name and photo.</p>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card">
+  {% csrf_token %}
+  {% for field in form %}
+  <div class="form-group">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+  </div>
+  {% endfor %}
+  {% if form.non_field_errors %}<div class="message">{{ form.non_field_errors|join:", " }}</div>{% endif %}
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">{{ action }} Clergy Member</button>
+    <a href="{% url 'admin_clergy_members' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

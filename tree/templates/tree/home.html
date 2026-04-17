@@ -4,681 +4,384 @@
 
 {% block extra_css %}
 <style>
-  .home-stack {
+  .home-stack { display: grid; gap: 1.5rem; }
+  .home-grid {
     display: grid;
-    gap: 2rem;
+    grid-template-columns: minmax(0, 1.5fr) minmax(290px, 0.72fr);
+    gap: 1.25rem;
+    align-items: stretch;
   }
-  .side-ad {
-    position: fixed;
-    right: 1.2rem;
-    bottom: 1.2rem;
-    width: min(300px, calc(100vw - 2rem));
-    z-index: 140;
-    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,250,250,0.97));
-    border: 1px solid rgba(199, 228, 230, 0.95);
-    border-radius: 24px;
-    box-shadow: 0 22px 50px rgba(8, 53, 58, 0.22);
+  .hero-panel {
+    position: relative;
+    min-height: 78vh;
     overflow: hidden;
-    backdrop-filter: blur(14px);
-  }
-  .side-ad-item {
-    display: none;
-  }
-  .side-ad-item.active {
-    display: block;
-  }
-  .side-ad-media {
-    display: block;
-    background: linear-gradient(180deg, #e3f4f5, #eef8f8);
-    padding: 0.7rem;
-  }
-  .side-ad-media img {
-    width: 100%;
-    max-height: 220px;
-    object-fit: contain;
-    display: block;
-    border-radius: 18px;
-    background: #f6fbfb;
-  }
-  .side-ad-body {
-    padding: 0.9rem 1rem 1rem;
-    display: grid;
-    gap: 0.7rem;
-  }
-  .side-ad-tag {
-    display: inline-flex;
-    width: fit-content;
-    align-items: center;
-    padding: 0.34rem 0.75rem;
-    border-radius: 999px;
-    background: rgba(19,153,166,0.12);
-    color: var(--gold-dim);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .side-ad-body h3 {
-    color: var(--cream);
-    font-size: 1.15rem;
-    line-height: 1.25;
-  }
-  .side-ad-actions {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
-  }
-  .side-ad-actions .btn {
-    flex: 1;
-    justify-content: center;
-    border-radius: 12px;
-    padding: 0.62rem 0.9rem;
-  }
-  .side-ad-close {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    border-radius: 38px;
     border: 1px solid var(--border);
-    background: rgba(255,255,255,0.78);
-    color: var(--cream);
-    cursor: pointer;
-    flex: 0 0 auto;
-  }
-  .ad-section-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 320px));
-    justify-content: center;
-    gap: 1rem;
-  }
-  .ad-section-card {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    overflow: hidden;
     box-shadow: var(--shadow);
+    background: #201811;
   }
-  .ad-section-media {
-    display: block;
-    background: linear-gradient(180deg, #e3f4f5, #eef8f8);
-    padding: 0.65rem;
-  }
-  .ad-section-media img {
-    width: 100%;
-    height: 170px;
-    object-fit: contain;
-    display: block;
-    border-radius: 16px;
-    background: #f6fbfb;
-  }
-  .ad-section-body {
-    padding: 0.85rem 0.95rem 1rem;
-    display: grid;
-    gap: 0.55rem;
-  }
-  .ad-section-body h3 {
-    color: var(--cream);
-    font-size: 0.95rem;
-    line-height: 1.3;
-  }
-  .ad-section-meta {
-    color: var(--text-dim);
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .ad-popup-backdrop {
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 30%),
-      rgba(6, 30, 34, 0.72);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1.25rem;
-    z-index: 300;
-    backdrop-filter: blur(12px);
-  }
-  .ad-popup-backdrop.open {
-    display: flex;
-  }
-  .ad-popup-card {
-    position: relative;
-    width: min(100%, 360px);
-    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(240,250,250,0.96));
-    border: 1px solid rgba(199, 228, 230, 0.9);
-    border-radius: 30px;
-    overflow: hidden;
-    box-shadow: 0 28px 90px rgba(10, 67, 72, 0.32);
-    transform: translateY(18px) scale(0.97);
-    opacity: 0;
-    transition: transform 0.35s ease, opacity 0.35s ease;
-  }
-  .ad-popup-backdrop.open .ad-popup-card {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-  .ad-popup-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 1px solid rgba(199, 228, 230, 0.95);
-    background: rgba(255,255,255,0.88);
-    color: var(--cream);
-    font-size: 1.35rem;
-    cursor: pointer;
-    z-index: 2;
-    box-shadow: 0 10px 25px rgba(10, 67, 72, 0.12);
-  }
-  .ad-popup-media {
-    position: relative;
-    background:
-      radial-gradient(circle at top, rgba(255,255,255,0.7), transparent 45%),
-      linear-gradient(180deg, #dff2f3 0%, #eef8f8 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.15rem 1.15rem 0.75rem;
-  }
-  .ad-popup-media img {
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    max-height: 360px;
-    object-fit: contain;
-    display: block;
-    border-radius: 22px;
-    box-shadow: 0 18px 45px rgba(10, 67, 72, 0.16);
-  }
-  .ad-popup-body {
-    position: relative;
-    padding: 0.8rem 0.9rem 0.95rem;
-    text-align: center;
-  }
-  .ad-popup-kicker {
-    display: inline-block;
-    margin-bottom: 0.5rem;
-    padding: 0.32rem 0.72rem;
-    border-radius: 999px;
-    background: linear-gradient(180deg, rgba(19,153,166,0.16), rgba(19,153,166,0.08));
-    color: var(--gold-dim);
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-  }
-  .ad-popup-body h2 {
-    color: var(--cream);
-    font-size: clamp(0.95rem, 3vw, 1.3rem);
-    line-height: 1.18;
-    margin-bottom: 0.65rem;
-    word-break: break-word;
-    text-wrap: balance;
-  }
-  .ad-popup-body .admin-actions {
-    justify-content: center;
-    gap: 0.45rem;
-  }
-  .ad-popup-body .btn {
-    justify-content: center;
-    min-width: 110px;
-    padding: 0.58rem 0.82rem;
-    border-radius: 12px;
-  }
-  .ad-popup-body .btn-primary {
-    background: linear-gradient(135deg, #1399a6, #0f7078);
-    box-shadow: 0 14px 28px rgba(15, 112, 120, 0.2);
-  }
-  .ad-popup-body .btn-primary:hover {
-    background: linear-gradient(135deg, #18aebc, #10838c);
-  }
-  .ad-popup-body .btn-secondary {
-    background: rgba(255,255,255,0.65);
-    min-width: 96px;
-  }
-  @media (min-width: 700px) {
-    .ad-popup-card {
-      max-width: 360px;
-    }
-    .ad-popup-media {
-      padding: 0.85rem 0.85rem 0.45rem;
-    }
-    .ad-popup-media img {
-      max-height: 360px;
-    }
-    .ad-popup-body {
-      padding: 0.8rem 0.9rem 0.95rem;
-      text-align: center;
-    }
-    .ad-popup-body .admin-actions {
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .ad-popup-kicker {
-      align-self: center;
-    }
-    .ad-popup-body .btn {
-      width: 100%;
-    }
-    .ad-popup-body .btn-secondary {
-      max-width: 96px;
-    }
-  }
-  @media (max-width: 520px) {
-    .side-ad {
-      position: static;
-      width: 100%;
-      max-width: none;
-      margin-top: -0.5rem;
-      box-shadow: var(--shadow);
-    }
-    .side-ad-media img {
-      max-height: 180px;
-      object-fit: contain;
-      background: #f6fbfb;
-    }
-    .ad-popup-backdrop {
-      padding: 0.8rem;
-    }
-    .ad-popup-card {
-      display: block;
-      width: 100%;
-      border-radius: 24px;
-    }
-    .ad-popup-media {
-      padding: 0.9rem 0.9rem 0.55rem;
-    }
-    .ad-popup-media img {
-      max-height: 56vh;
-      border-radius: 18px;
-    }
-    .ad-popup-body {
-      padding: 0.9rem 0.9rem 1rem;
-      text-align: center;
-    }
-    .ad-popup-body h2 {
-      font-size: 1.05rem;
-    }
-    .ad-popup-body .admin-actions {
-      flex-direction: column;
-    }
-    .ad-popup-body .btn,
-    .ad-popup-body .btn-secondary {
-      width: 100%;
-      max-width: none;
-    }
-  }
-  .hero {
-    position: relative;
-    min-height: 76vh;
-    border-radius: 30px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    background: #ffffff;
-    box-shadow: var(--shadow);
-  }
-  .hero-slide {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-  }
-  .hero-slide.active {
-    opacity: 1;
-  }
-  .hero-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
+  .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.75s ease; }
+  .hero-slide.active { opacity: 1; }
+  .hero-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(8, 31, 35, 0.76) 0%, rgba(8, 31, 35, 0.38) 42%, rgba(8, 31, 35, 0.08) 100%);
     display: flex;
     align-items: end;
+    background: linear-gradient(120deg, rgba(19, 14, 10, 0.82) 0%, rgba(19, 14, 10, 0.44) 46%, rgba(19, 14, 10, 0.18) 100%);
   }
   .hero-content {
-    max-width: 760px;
-    padding: 2rem 2rem 2.6rem;
-    color: #ffffff;
+    position: relative;
+    z-index: 2;
+    width: min(760px, 100%);
+    padding: clamp(1.4rem, 4vw, 3rem);
+    color: #fff9f4;
   }
-  .hero-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 0.9rem;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.14);
-    color: #ffffff;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    backdrop-filter: blur(8px);
-    margin-bottom: 1rem;
+  .hero-content .eyebrow {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    backdrop-filter: blur(10px);
   }
-  .hero h1 {
-    margin: 0 0 1rem;
-    font-size: clamp(2.8rem, 6vw, 5.6rem);
-    line-height: 0.93;
+  .hero-title {
+    font-size: clamp(3.2rem, 8vw, 6.3rem);
+    line-height: 0.88;
     letter-spacing: -0.05em;
-    color: #ffffff;
+    margin: 0.65rem 0 1rem;
   }
-  .hero h1 span {
-    color: #bdf4f7;
-  }
-  .hero p {
-    max-width: 620px;
-    margin: 0 0 1.5rem;
-    color: rgba(255,255,255,0.9);
-    font-size: 1.08rem;
-  }
-  .hero-actions {
-    display: flex;
-    gap: 0.9rem;
-    flex-wrap: wrap;
-  }
+  .hero-title span { color: #d4f0eb; }
+  .hero-copy { max-width: 620px; color: rgba(255, 249, 244, 0.88); font-size: 1.05rem; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.5rem; }
   .hero-actions .btn-secondary {
-    background: rgba(255,255,255,0.12);
-    border-color: rgba(255,255,255,0.28);
-    color: #ffffff;
-    backdrop-filter: blur(8px);
-  }
-  .hero-actions .btn-secondary:hover {
-    background: rgba(255,255,255,0.2);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    backdrop-filter: blur(10px);
   }
   .hero-dots {
     position: absolute;
-    left: 2rem;
-    bottom: 1.2rem;
+    left: clamp(1.4rem, 4vw, 3rem);
+    bottom: 1.35rem;
     display: flex;
     gap: 0.55rem;
     z-index: 3;
   }
   .hero-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    width: 11px;
+    height: 11px;
     border: 0;
-    background: rgba(255,255,255,0.45);
-    padding: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.42);
     cursor: pointer;
   }
   .hero-dot.active {
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.16);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.13);
   }
-
+  .home-side { display: grid; gap: 1rem; }
+  .quick-card, .side-ad {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+  }
+  .quick-card { padding: 1.4rem; display: grid; gap: 1rem; }
+  .quick-card h2 { font-size: 2rem; color: var(--brand-strong); }
+  .quick-card p { font-size: 0.96rem; }
+  .quick-links { display: grid; gap: 0.75rem; }
+  .quick-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.95rem 1rem;
+    border-radius: 20px;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .quick-link:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+    border-color: rgba(15, 118, 110, 0.22);
+  }
+  .quick-link strong { color: var(--text); font-size: 0.95rem; }
+  .quick-link span { color: var(--text-dim); font-size: 0.82rem; }
+  .quick-link-mark { color: var(--accent); font-size: 1.1rem; font-weight: 800; }
+  .side-ad-item { display: none; }
+  .side-ad-item.active { display: block; }
+  .side-ad-media {
+    display: block;
+    padding: 0.9rem 0.9rem 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.3), transparent);
+  }
+  .side-ad-media img {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+    border-radius: 22px;
+    display: block;
+  }
+  .side-ad-body { padding: 1rem 1rem 1.1rem; display: grid; gap: 0.8rem; }
+  .side-ad-body h3 { color: var(--brand-strong); font-size: 1.5rem; line-height: 1; }
+  .side-ad-actions { display: flex; gap: 0.7rem; align-items: center; }
+  .side-ad-close {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.7);
+    color: var(--brand-strong);
+    font-size: 1.3rem;
+    cursor: pointer;
+  }
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
   }
   .stat-card {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 22px;
     padding: 1.4rem;
-    text-align: center;
-    box-shadow: var(--shadow);
+    border-radius: 28px;
+    border: 1px solid var(--border);
+    background: rgba(255, 252, 246, 0.82);
+    box-shadow: var(--shadow-soft);
   }
+  .stat-card p { margin-top: 0.35rem; font-size: 0.9rem; }
   .stat-num {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2rem, 4vw, 2.8rem);
-    color: var(--gold);
-    line-height: 1;
-    margin-bottom: 0.25rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    color: var(--brand-strong);
+    line-height: 0.95;
   }
   .stat-label {
+    margin-top: 0.35rem;
     color: var(--text-dim);
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .section-shell {
-    display: grid;
-    gap: 1rem;
-  }
-  .section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: end;
-    gap: 1rem;
-  }
-  .section-copy {
-    max-width: 620px;
-  }
-
-  .about-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 420px);
-    gap: 2rem;
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-    align-items: center;
-  }
-  .about-card h3 {
-    color: var(--cream);
-    font-size: 1.15rem;
-    margin-bottom: 0.75rem;
-    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
   }
-  .about-card p {
-    color: var(--text);
-    font-size: 1rem;
-    line-height: 1.8;
+  .about-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+    gap: 1.2rem;
+    align-items: stretch;
   }
-  .about-intro {
-    max-width: 560px;
-  }
-  .about-cta {
-    margin-top: 1.5rem;
-  }
-  .about-image {
-    width: 100%;
-    border-radius: 22px;
+  .about-copy, .about-visual {
+    border-radius: 30px;
     overflow: hidden;
-    border: 1px solid var(--border);
-    background: #f7fcfc;
   }
-  .about-image img {
+  .about-copy {
+    padding: 1.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .about-copy h3 { font-size: 2.1rem; color: var(--brand-strong); margin-bottom: 0.8rem; }
+  .about-copy p { max-width: 60ch; font-size: 1rem; }
+  .about-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-top: 1.25rem;
+  }
+  .about-meta-card {
+    padding: 1rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.58);
+    border: 1px solid var(--border);
+  }
+  .about-meta-card strong {
+    display: block;
+    color: var(--brand-strong);
+    margin-bottom: 0.25rem;
+  }
+  .about-visual { min-height: 100%; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .about-visual img {
     width: 100%;
     height: 100%;
-    max-height: 320px;
+    min-height: 320px;
     object-fit: cover;
     display: block;
   }
-
-  .events-grid {
+  .events-grid, .mentors-grid, .ad-section-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
   }
-  .event-card {
-    background: #ffffff;
+  .event-card, .mentor-card, .ad-section-card {
+    display: grid;
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 22px;
+    border-radius: 28px;
     overflow: hidden;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-soft);
   }
-  .event-image {
-    width: 100%;
-    height: 220px;
-    background: #eef8f8;
+  .event-card, .ad-section-card {
+    position: relative;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   }
-  .event-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+  .event-card:hover, .ad-section-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 56px rgba(70, 43, 24, 0.16);
+    border-color: rgba(15, 118, 110, 0.18);
   }
-  .event-body {
-    padding: 1.25rem;
+  .event-image, .mentor-photo, .ad-section-media { position: relative; background: var(--surface-soft); }
+  .event-image::after,
+  .ad-section-media::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 55%;
+    background: linear-gradient(180deg, transparent, rgba(31, 21, 14, 0.2));
+    pointer-events: none;
   }
-  .event-tag {
-    display: inline-block;
-    margin-bottom: 0.9rem;
-    padding: 0.35rem 0.8rem;
+  .event-image img, .mentor-photo img, .ad-section-media img { width: 100%; display: block; }
+  .event-image img, .ad-section-media img { height: 240px; object-fit: cover; }
+  .mentor-photo img { height: 400px; object-fit: fill; }
+  .event-body, .mentor-body, .ad-section-body { padding: 1.15rem; }
+  .event-body, .ad-section-body { display: grid; gap: 0.8rem; align-content: start; }
+  .event-tag, .ad-section-meta {
+    display: inline-flex;
+    width: fit-content;
+    padding: 0.34rem 0.72rem;
     border-radius: 999px;
-    background: rgba(19,153,166,0.1);
-    color: var(--gold-dim);
-    font-size: 0.75rem;
-    font-weight: 700;
+    background: rgba(15, 118, 110, 0.08);
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
   }
-  .event-card h3 {
-    color: var(--cream);
-    font-size: 1.15rem;
-    margin-bottom: 0.4rem;
+  .event-card h3, .mentor-body h3, .ad-section-body h3 {
+    color: var(--brand-strong);
+    font-size: 1.5rem;
+    margin: 0.15rem 0 0;
   }
-  .event-date {
-    color: var(--gold-dim);
+  .event-date, .mentor-role {
+    color: var(--brand);
     font-size: 0.86rem;
-    font-weight: 700;
-    margin-bottom: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .event-card p {
+  .event-copy,
+  .ad-copy {
     color: var(--text-dim);
     font-size: 0.95rem;
-    line-height: 1.65;
+    line-height: 1.7;
   }
-
-  .mentors-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 320px));
+  .event-footer,
+  .ad-section-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-top: 0.2rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+  }
+  .event-link {
+    color: var(--brand-strong);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .event-link::after {
+    content: " →";
+  }
+  .ad-section-footer .btn {
+    min-height: 42px;
+    padding: 0.72rem 1rem;
+  }
+  .ad-popup-backdrop {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
     justify-content: center;
-    gap: 1rem;
+    padding: 1rem;
+    background: rgba(25, 18, 12, 0.55);
+    backdrop-filter: blur(12px);
+    z-index: 300;
   }
-  .mentor-card {
-    display: block;
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 24px;
+  .ad-popup-backdrop.open { display: flex; }
+  .ad-popup-card {
+    position: relative;
+    width: min(100%, 420px);
     overflow: hidden;
-    box-shadow: var(--shadow);
+    border-radius: 32px;
+    background: #fffaf4;
+    border: 1px solid rgba(112, 82, 44, 0.16);
+    box-shadow: 0 30px 90px rgba(39, 26, 18, 0.24);
   }
-  .mentor-photo {
-    height: 320px;
-    background: #eef8f8;
+  .ad-popup-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.86);
+    color: var(--brand-strong);
+    font-size: 1.35rem;
+    cursor: pointer;
+    z-index: 2;
   }
-  .mentor-photo img {
+  .ad-popup-media { padding: 1rem 1rem 0; }
+  .ad-popup-media img {
     width: 100%;
-    height: 100%;
-    object-fit: contain;
+    max-height: 360px;
+    object-fit: cover;
+    border-radius: 24px;
     display: block;
-    background: #eef8f8;
   }
-  .mentor-body {
-    padding: 1rem 1rem 1.15rem;
-    text-align: center;
+  .ad-popup-body { padding: 1rem 1rem 1.2rem; text-align: center; }
+  .ad-popup-body h2 { font-size: 2rem; color: var(--brand-strong); margin: 0.65rem 0; }
+  .popup-actions {
+    display: flex;
+    gap: 0.7rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
   }
-  .mentor-body h3 {
-    color: var(--cream);
-    font-size: 1.1rem;
-    margin-bottom: 0.3rem;
-  }
-  .mentor-role {
-    color: var(--gold-dim);
-    font-size: 0.85rem;
-    font-weight: 700;
-  }
-
   .empty-state {
     text-align: center;
     padding: 3rem 1rem;
-    color: var(--text-dim);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    box-shadow: var(--shadow);
   }
   .empty-state .icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--brand);
+    font-size: 4rem;
+    line-height: 1;
   }
-  .empty-state h2 {
-    font-family: 'Playfair Display', serif;
-    color: var(--text);
-    margin-bottom: 0.5rem;
-  }
-
+  .empty-state h2 { font-size: 2.3rem; color: var(--brand-strong); margin: 0.5rem 0; }
   @media (max-width: 1100px) {
-    .events-grid,
-    .mentors-grid {
-      grid-template-columns: 1fr;
-    }
-    .mentor-photo {
-      height: 320px;
-    }
+    .home-grid, .about-panel, .events-grid, .mentors-grid, .ad-section-grid { grid-template-columns: 1fr; }
+    .hero-panel { min-height: 66vh; }
   }
-
-  @media (max-width: 900px) {
-    .hero {
-      min-height: 68vh;
-    }
-    .hero-overlay {
-      background: linear-gradient(180deg, rgba(8, 31, 35, 0.18) 0%, rgba(8, 31, 35, 0.78) 100%);
-    }
-    .hero-content {
-      padding: 1.4rem 1.25rem 2rem;
-    }
-    .hero-dots {
-      left: 1.25rem;
-      bottom: 1rem;
-    }
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
-    .about-card {
-      grid-template-columns: 1fr;
-      padding: 1.4rem;
-    }
+  @media (max-width: 700px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .about-meta { grid-template-columns: 1fr; }
+    .hero-overlay { background: linear-gradient(180deg, rgba(19, 14, 10, 0.18) 0%, rgba(19, 14, 10, 0.8) 100%); }
+    .hero-content { padding-bottom: 4rem; }
+    .side-ad-actions, .popup-actions { flex-direction: column; }
+    .side-ad-actions .btn, .popup-actions .btn { width: 100%; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="home-stack">
-  {% if side_ad %}
-  <aside class="side-ad" id="homeSideAd" data-rotate-ms="5000">
-    {% for ad in side_ads %}
-    <div class="side-ad-item{% if forloop.first %} active{% endif %}">
-    {% if ad.button_url %}
-    <a href="{{ ad.button_url }}" class="side-ad-media">
-      {% if ad.image %}
-      <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
-      {% endif %}
-    </a>
-    {% else %}
-    <div class="side-ad-media">
-      {% if ad.image %}
-      <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
-      {% endif %}
-    </div>
-    {% endif %}
-    <div class="side-ad-body">
-      <span class="side-ad-tag">Featured Ad</span>
-      <h3>{{ ad.title }}</h3>
-      <div class="side-ad-actions">
-        {% if ad.button_text and ad.button_url %}
-        <a href="{{ ad.button_url }}" class="btn btn-primary">{{ ad.button_text }}</a>
-        {% endif %}
-        <button type="button" class="side-ad-close" id="homeSideAdClose" aria-label="Close side ad">×</button>
-      </div>
-    </div>
-    </div>
-    {% endfor %}
-  </aside>
-  {% endif %}
-
   {% if popup_ad %}
   <div class="ad-popup-backdrop" id="siteAdPopup" data-ad-id="{{ popup_ad.pk }}">
     <div class="ad-popup-card" role="dialog" aria-modal="true" aria-labelledby="siteAdTitle">
@@ -689,11 +392,11 @@
       </div>
       {% endif %}
       <div class="ad-popup-body">
-        <span class="ad-popup-kicker">Featured Announcement</span>
+        <span class="eyebrow">Featured Announcement</span>
         <h2 id="siteAdTitle">{{ popup_ad.title }}</h2>
-        <div class="admin-actions">
+        <div class="popup-actions">
           {% if popup_ad.button_text and popup_ad.button_url %}
-          <a href="{{ popup_ad.button_url }}" class="btn btn-primary">{{ popup_ad.button_text }}</a>
+          <a href="{{ popup_ad.button_url }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">{{ popup_ad.button_text }}</a>
           {% endif %}
           <button type="button" class="btn btn-secondary" id="siteAdDismiss">Close</button>
         </div>
@@ -702,66 +405,149 @@
   </div>
   {% endif %}
 
-  <section class="hero" id="heroSlider">
-    <div class="hero-slide active">
-      <img src="{% static 'tree/home/hero-1.jpg' %}" alt="Family hero image 1">
-    </div>
-    <div class="hero-slide">
-      <img src="{% static 'tree/home/hero-2.jpg' %}" alt="Family hero image 2">
-    </div>
-    <div class="hero-slide">
-      <img src="{% static 'tree/home/hero-3.jpg' %}" alt="Family hero image 3">
-    </div>
-
-    <div class="hero-overlay">
-      <div class="hero-content">
-        <div class="hero-kicker">Irimpan Kudumba Yogam</div>
-        <h1>One Family.<br><span>Shared Heritage.</span></h1>
-        <p>Welcome to the digital home of Irimpan Kudumba Yogam, where family memories, shared values, and generational bonds are preserved with dignity and love.</p>
-        <div class="hero-actions">
-          <a href="{% url 'tree' %}" class="btn btn-primary">View Tree</a>
-          <a href="{% url 'gallery' %}" class="btn btn-secondary">Explore Gallery</a>
-          {% if request.user.is_authenticated and request.user.is_staff %}
-          <a href="{% url 'person_add' %}" class="btn btn-secondary">Add Member</a>
-          {% endif %}
+  <section class="home-grid">
+    <div class="hero-panel" id="heroSlider">
+      {% for hero_image in hero_images %}
+      <div class="hero-slide{% if forloop.first %} active{% endif %}">
+        {% if hero_image.image_url %}
+        <img src="{{ hero_image.image_url }}" alt="{{ hero_image.alt_text|default:'Family hero image' }}">
+        {% else %}
+        <img src="{{ hero_image.image.url }}" alt="{{ hero_image.alt_text|default:'Family hero image' }}">
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="hero-overlay">
+        <div class="hero-content">
+          <span class="eyebrow">Irimpan Kudumba Yogam</span>
+          <h1 class="hero-title">One family.<br><span>One living story.</span></h1>
+          <p class="hero-copy">A refined digital home for preserving lineage, sharing milestones, and keeping every generation connected to the values and memory of the Irimpan family.</p>
+          <div class="hero-actions">
+            <a href="{% url 'tree' %}" class="btn btn-primary">Explore Family Tree</a>
+            <a href="{% url 'gallery' %}" class="btn btn-secondary">View Gallery</a>
+            {% if request.user.is_authenticated and request.user.is_staff %}
+            <a href="{% url 'person_add' %}" class="btn btn-secondary">Add Member</a>
+            {% endif %}
+          </div>
         </div>
+      </div>
+      <div class="hero-dots">
+        {% for hero_image in hero_images %}
+        <button class="hero-dot{% if forloop.first %} active{% endif %}" type="button" aria-label="Slide {{ forloop.counter }}"></button>
+        {% endfor %}
       </div>
     </div>
 
-    <div class="hero-dots">
-      <button class="hero-dot active" type="button" aria-label="Slide 1"></button>
-      <button class="hero-dot" type="button" aria-label="Slide 2"></button>
-      <button class="hero-dot" type="button" aria-label="Slide 3"></button>
-    </div>
+    <aside class="home-side">
+      <div class="quick-card">
+        <div>
+          <span class="eyebrow">Quick Access</span>
+          <h2>Explore the family portal with clarity.</h2>
+        </div>
+        <p>Move quickly between history, events, photo archives, and the full genealogy map without losing the sense of a single cohesive family archive.</p>
+        <div class="quick-links">
+          <a href="{% url 'about' %}" class="quick-link">
+            <div>
+              <strong>Family History</strong>
+              <span>Origins, continuity, and committee leadership.</span>
+            </div>
+            <div class="quick-link-mark">↗</div>
+          </a>
+          <a href="{% url 'family_page' %}" class="quick-link">
+            <div>
+              <strong>Family Homes</strong>
+              <span>View households and separate homes in one place.</span>
+            </div>
+            <div class="quick-link-mark">↗</div>
+          </a>
+          <a href="{% url 'events' %}" class="quick-link">
+            <div>
+              <strong>Upcoming Events</strong>
+              <span>Gatherings, celebrations, and shared dates.</span>
+            </div>
+            <div class="quick-link-mark">↗</div>
+          </a>
+        </div>
+      </div>
+
+      {% if side_ad %}
+      <aside class="side-ad" id="homeSideAd" data-rotate-ms="5000">
+        {% for ad in side_ads %}
+        <div class="side-ad-item{% if forloop.first %} active{% endif %}">
+          {% if ad.button_url %}
+          <a href="{{ ad.button_url }}" class="side-ad-media" target="_blank" rel="noopener noreferrer">
+            {% if ad.image %}
+            <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
+            {% endif %}
+          </a>
+          {% else %}
+          <div class="side-ad-media">
+            {% if ad.image %}
+            <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
+            {% endif %}
+          </div>
+          {% endif %}
+          <div class="side-ad-body">
+            <span class="eyebrow">Featured Ad</span>
+            <h3>{{ ad.title }}</h3>
+            <div class="side-ad-actions">
+              {% if ad.button_text and ad.button_url %}
+              <a href="{{ ad.button_url }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">{{ ad.button_text }}</a>
+              {% endif %}
+              <button type="button" class="side-ad-close" aria-label="Close side ad">×</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </aside>
+      {% endif %}
+    </aside>
   </section>
 
   <section class="stats-grid">
-    <div class="stat-card">
+    <article class="stat-card">
       <div class="stat-num">{{ total }}</div>
-      <div class="stat-label">Family Members</div>
-    </div>
-    <div class="stat-card">
+      <div class="stat-label">Registered Members</div>
+      <p>Every profile contributes to a richer, more reliable family archive.</p>
+    </article>
+    <article class="stat-card">
       <div class="stat-num">{{ people|length }}</div>
-      <div class="stat-label">Profiles</div>
-    </div>
+      <div class="stat-label">Visible Profiles</div>
+      <p>Structured entries make browsing and future updates easier for everyone.</p>
+    </article>
+    <article class="stat-card">
+      <div class="stat-num">{{ generations }}</div>
+      <div class="stat-label">Generations Traced</div>
+      <p>The archive is designed to keep lineage readable across time.</p>
+    </article>
   </section>
 
   <section class="section-shell">
     <div class="section-head">
-      <div class="section-copy" style="max-width:none;text-align:center;width:100%;">
-        <h2 class="section-title">About Us</h2>
-        <p class="section-sub">A simple introduction to the purpose and spirit of Irimpan Kudumba Yogam.</p>
+      <div class="section-copy">
+        <div class="section-kicker">About The Family</div>
+        <h2 class="section-title">A heritage platform built around belonging.</h2>
+        <p class="section-sub">This redesign gives the family site a clearer hierarchy, warmer tone, and a more trustworthy presentation for records, updates, and memory.</p>
       </div>
     </div>
-    <article class="about-card">
-      <div class="about-intro">
-        <h3>About</h3>
-        <p>Together we grow stronger as one family. Irimpan Kudumba Yogam is a space to preserve our heritage, encourage unity, and pass our values forward to the coming generation with love, respect, and shared responsibility.</p>
-        <div class="about-cta">
-          <a href="{% url 'about' %}" class="btn btn-primary">Read More</a>
+    <article class="about-panel">
+      <div class="about-copy">
+        <h3>Preserving lineage with dignity and modern clarity</h3>
+        <p>{{ home_about_blurb }}</p>
+        <div class="about-meta">
+          <div class="about-meta-card">
+            <strong>Shared Memory</strong>
+            <p>Family stories, leadership history, and milestones stay visible instead of getting lost in scattered records.</p>
+          </div>
+          <div class="about-meta-card">
+            <strong>Easy Navigation</strong>
+            <p>Visitors can move from history to events, tree view, and the gallery without visual inconsistency.</p>
+          </div>
+        </div>
+        <div style="margin-top:1.25rem;">
+          <a href="{% url 'about' %}" class="btn btn-primary">Read Family History</a>
         </div>
       </div>
-      <div class="about-image">
+      <div class="about-visual">
         <img src="{% static 'tree/home/hero-2.jpg' %}" alt="Irimpan Kudumba Yogam family">
       </div>
     </article>
@@ -770,9 +556,11 @@
   <section class="section-shell">
     <div class="section-head">
       <div class="section-copy">
-        <h2 class="section-title">Upcoming Events</h2>
-        <p class="section-sub">Gatherings that keep the family connected throughout the year.</p>
+        <div class="section-kicker">Calendar</div>
+        <h2 class="section-title">Upcoming moments worth gathering for.</h2>
+        <p class="section-sub">Events are presented as polished feature cards so important family dates feel prominent and easy to revisit.</p>
       </div>
+      <a href="{% url 'events' %}" class="btn btn-secondary">See All Events</a>
     </div>
     <div class="events-grid">
       {% for event in upcoming_events %}
@@ -789,11 +577,21 @@
           {% endif %}
         </div>
         <div class="event-body">
-          <span class="event-tag">{{ event.tag }}</span>
+          <span class="event-tag">{{ event.tag|default:"Family Event" }}</span>
           <h3>{{ event.title }}</h3>
-          <div class="event-date">{{ event.event_date }}</div>
-          <p>{{ event.description }}</p>
+          <div class="event-date">{{ event.event_date|date:"F d, Y" }}</div>
+          <p class="event-copy">{{ event.description|truncatewords:26 }}</p>
+          <div class="event-footer">
+            <span class="muted">{{ event.location|default:"Location to be announced" }}</span>
+            <span class="event-link">View Event</span>
+          </div>
         </div>
+      </article>
+      {% empty %}
+      <article class="empty-state" style="grid-column:1 / -1;">
+        <div class="icon">+</div>
+        <h2>No events added yet</h2>
+        <p>Once upcoming gatherings are added from the admin panel, they will appear here in a more polished event showcase.</p>
       </article>
       {% endfor %}
     </div>
@@ -803,15 +601,16 @@
   <section class="section-shell">
     <div class="section-head">
       <div class="section-copy">
-        <h2 class="section-title">Featured Announcements</h2>
-        <p class="section-sub">Promotions and updates placed on the home page without interrupting visitors.</p>
+        <div class="section-kicker">Announcements</div>
+        <h2 class="section-title">Featured updates without interrupting the experience.</h2>
+        <p class="section-sub">Important promotions and notices now sit comfortably within the homepage layout instead of feeling detached from the rest of the site.</p>
       </div>
     </div>
     <div class="ad-section-grid">
       {% for ad in section_ads %}
       <article class="ad-section-card">
         {% if ad.button_url %}
-        <a href="{{ ad.button_url }}" class="ad-section-media">
+        <a href="{{ ad.button_url }}" class="ad-section-media" target="_blank" rel="noopener noreferrer">
           {% if ad.image %}
           <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
           {% endif %}
@@ -826,9 +625,15 @@
         <div class="ad-section-body">
           <div class="ad-section-meta">Featured Ad</div>
           <h3>{{ ad.title }}</h3>
-          {% if ad.button_text and ad.button_url %}
-          <a href="{{ ad.button_url }}" class="btn btn-primary">{{ ad.button_text }}</a>
+          {% if ad.message %}
+          <p class="ad-copy">{{ ad.message|truncatewords:20 }}</p>
           {% endif %}
+          <div class="ad-section-footer">
+            <span class="muted">Featured on homepage</span>
+            {% if ad.button_text and ad.button_url %}
+            <a href="{{ ad.button_url }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">{{ ad.button_text }}</a>
+            {% endif %}
+          </div>
         </div>
       </article>
       {% endfor %}
@@ -839,8 +644,9 @@
   <section class="section-shell">
     <div class="section-head">
       <div class="section-copy">
-        <h2 class="section-title">Our Mentors</h2>
-        <p class="section-sub">Elders and guiding figures whose lives continue to inspire the family.</p>
+        <div class="section-kicker">Mentors</div>
+        <h2 class="section-title">Lives that continue to shape the family.</h2>
+        <p class="section-sub">Mentor profiles are given more visual dignity, making this section feel intentional rather than decorative.</p>
       </div>
     </div>
     <div class="mentors-grid">
@@ -861,14 +667,15 @@
   {% if not people %}
   <div class="empty-state">
     <div class="icon">+</div>
-    <h2>Start Your Family Tree</h2>
-    <p>Add the first family member to begin building your tree.</p>
-    <br>
-    {% if request.user.is_authenticated and request.user.is_staff %}
-    <a href="{% url 'person_add' %}" class="btn btn-primary">Add First Member</a>
-    {% else %}
-    <a href="{% url 'admin_login' %}" class="btn btn-secondary">Admin Login</a>
-    {% endif %}
+    <h2>Start building the family archive</h2>
+    <p>Add the first family member to begin shaping the digital tree and household records.</p>
+    <div style="margin-top:1rem;">
+      {% if request.user.is_authenticated and request.user.is_staff %}
+      <a href="{% url 'person_add' %}" class="btn btn-primary">Add First Member</a>
+      {% else %}
+      <a href="{% url 'admin_login' %}" class="btn btn-secondary">Admin Login</a>
+      {% endif %}
+    </div>
   </div>
   {% endif %}
 </div>
@@ -879,47 +686,38 @@
   (function () {
     const slider = document.getElementById('heroSlider');
     if (!slider) return;
-
     const slides = Array.from(slider.querySelectorAll('.hero-slide'));
     const dots = Array.from(slider.querySelectorAll('.hero-dot'));
     if (slides.length < 2) return;
-
     let index = 0;
-
     function show(nextIndex) {
       index = nextIndex;
       slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
       dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     }
-
     dots.forEach((dot, i) => dot.addEventListener('click', () => show(i)));
-
     setInterval(() => {
       show((index + 1) % slides.length);
-    }, 3500);
+    }, 4200);
   })();
 
   (function () {
     const sideAd = document.getElementById('homeSideAd');
     if (!sideAd) return;
-
     const items = Array.from(sideAd.querySelectorAll('.side-ad-item'));
     const closeButtons = Array.from(sideAd.querySelectorAll('.side-ad-close'));
     const rotateMs = Number(sideAd.dataset.rotateMs || 5000);
     let currentIndex = items.findIndex((item) => item.classList.contains('active'));
     if (currentIndex < 0) currentIndex = 0;
-
     function showItem(index) {
       items.forEach((item, itemIndex) => item.classList.toggle('active', itemIndex === index));
       currentIndex = index;
     }
-
     closeButtons.forEach((button) => {
       button.addEventListener('click', function () {
         sideAd.style.display = 'none';
       });
     });
-
     if (items.length > 1) {
       setInterval(function () {
         showItem((currentIndex + 1) % items.length);
@@ -930,11 +728,9 @@
   (function () {
     const popup = document.getElementById('siteAdPopup');
     if (!popup) return;
-
     const adId = popup.dataset.adId;
     const storageKey = `site-ad-dismissed-${adId}`;
     const closeButtons = [document.getElementById('siteAdClose'), document.getElementById('siteAdDismiss')];
-
     function closePopup() {
       popup.classList.remove('open');
       document.body.style.overflow = '';
@@ -943,33 +739,24 @@
       } catch (error) {
       }
     }
-
     let dismissed = false;
     try {
       dismissed = sessionStorage.getItem(storageKey) === '1';
     } catch (error) {
     }
-
     if (!dismissed) {
       popup.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
-
     closeButtons.forEach((button) => {
       if (!button) return;
       button.addEventListener('click', closePopup);
     });
-
     popup.addEventListener('click', (event) => {
-      if (event.target === popup) {
-        closePopup();
-      }
+      if (event.target === popup) closePopup();
     });
-
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && popup.classList.contains('open')) {
-        closePopup();
-      }
+      if (event.key === 'Escape' && popup.classList.contains('open')) closePopup();
     });
   })();
 </script>

@@ -40,9 +40,23 @@
   </div>
   <div class="admin-stat">
     <span>Live Stream</span>
-    <strong>Update</strong>
+    <strong>Manage</strong>
     <div class="admin-actions" style="margin-top:1rem;">
       <a href="{% url 'admin_live_stream' %}" class="btn btn-primary">Manage Stream</a>
+    </div>
+  </div>
+  <div class="admin-stat">
+    <span>Committee</span>
+    <strong>Add</strong>
+    <div class="admin-actions" style="margin-top:1rem;">
+      <a href="{% url 'admin_committee_add' %}" class="btn btn-primary">Add Committee</a>
+    </div>
+  </div>
+  <div class="admin-stat">
+    <span>Hero Images</span>
+    <strong>Manage</strong>
+    <div class="admin-actions" style="margin-top:1rem;">
+      <a href="{% url 'admin_hero_image_add' %}" class="btn btn-primary">Add Hero Image</a>
     </div>
   </div>
 </div>
@@ -64,15 +78,47 @@
     <span>Gallery Photos</span>
     <strong>{{ gallery_count }}</strong>
   </div>
+  <div class="admin-stat">
+    <span>Live Streams</span>
+    <strong>{{ live_stream_count }}</strong>
+  </div>
+  <div class="admin-stat">
+    <span>Committees</span>
+    <strong>{{ committee_count }}</strong>
+  </div>
+  <div class="admin-stat">
+    <span>Member Groups</span>
+    <strong>{{ member_group_count }}</strong>
+  </div>
+  <div class="admin-stat">
+    <span>Hero Images</span>
+    <strong>{{ hero_image_count }}</strong>
+  </div>
+  <div class="admin-stat">
+    <span>Website Visitors</span>
+    <strong>{{ site_visit_count }}</strong>
+  </div>
+  <div class="admin-stat">
+    <span>WhatsApp Broadcasts</span>
+    <strong>{{ whatsapp_broadcast_count }}</strong>
+  </div>
+  <div class="admin-stat">
+    <span>Messages Sent</span>
+    <strong>{{ whatsapp_message_sent_count }}</strong>
+  </div>
 </div>
 
 <hr class="divider">
 
 {% if can_manage_members %}
-<div class="admin-head">
+  <div class="admin-head">
   <div><h2 class="section-title">Recent Members</h2></div>
   <div class="admin-actions">
+    <a href="{% url 'admin_member_segments' %}" class="btn btn-secondary">Groups</a>
+    <a href="{% url 'admin_whatsapp_broadcast' %}" class="btn btn-secondary">WhatsApp</a>
+    <a href="{% url 'admin_hero_images' %}" class="btn btn-secondary">Hero Images</a>
     <a href="{% url 'admin_member_users' %}" class="btn btn-secondary">Manage Member Users</a>
+    <a href="{% url 'admin_members_clear_all' %}" class="btn btn-danger">Clear All Members</a>
     <a href="{% url 'admin_member_add' %}" class="btn btn-primary">Add Member</a>
   </div>
 </div>

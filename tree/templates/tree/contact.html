@@ -1,32 +1,84 @@
 {% extends "tree/base.html" %}
-{% block title %}Contact Us - Family Tree{% endblock %}
+{% block title %}Contact Us - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .contact-page { display: grid; gap: 1.4rem; }
+  .contact-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+    gap: 1.2rem;
+    align-items: start;
+  }
+  .contact-card { display: grid; gap: 1rem; }
+  .contact-block, .contact-form-shell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+  }
+  .contact-block { padding: 1.25rem; }
+  .contact-block h3 { color: var(--brand-strong); font-size: 1.7rem; margin-bottom: 0.4rem; }
+  .contact-list { list-style: none; padding: 0; margin: 0; }
+  .contact-form-shell { padding: 1.4rem; }
+  .contact-form-shell h2 { color: var(--brand-strong); font-size: 2rem; margin-bottom: 0.4rem; }
+  @media (max-width: 900px) {
+    .contact-layout { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<section class="hero-band">
-  <h1 class="section-title">Contact Us</h1>
-  <p class="section-sub">Share corrections, event ideas, and family updates with the site administrators.</p>
-</section>
-
-<div class="card" style="max-width:760px;">
-  <form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-      <label class="form-label" for="name">Your Name</label>
-      <input id="name" name="name" class="form-input" placeholder="Enter your name">
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="email">Email</label>
-      <input id="email" name="email" type="email" class="form-input" placeholder="Enter your email">
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="subject">Subject</label>
-      <input id="subject" name="subject" class="form-input" placeholder="What would you like to share?">
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="message">Message</label>
-      <textarea id="message" name="message" rows="6" class="form-input" placeholder="Write your message"></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Send Message</button>
-  </form>
+<div class="contact-page">
+  <section class="page-hero">
+    <span class="eyebrow">Contact</span>
+    <h1 class="section-title">A cleaner space for updates, corrections, and family news.</h1>
+    <p class="section-sub">{{ contact_details.contact_note }}</p>
+  </section>
+  <div class="contact-layout">
+    <aside class="contact-card">
+      <div class="contact-block">
+        <h3>{{ contact_details.organization }}</h3>
+        <ul class="contact-list">
+          {% for line in contact_details.address_lines %}
+          <li>{{ line }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="contact-block">
+        <h3>Website</h3>
+        <a href="{{ contact_details.website }}" target="_blank" rel="noopener noreferrer">{{ contact_details.website }}</a>
+      </div>
+      <div class="contact-block">
+        <h3>Suggested Use</h3>
+        <p>Use this form for family updates, corrections, event ideas, and content additions for the Irimpan Kudumba Yogam website.</p>
+      </div>
+    </aside>
+    <section class="contact-form-shell">
+      <h2>Send a message</h2>
+      <p style="margin-bottom:1rem;">Share corrections, family milestones, event ideas, or administrative updates through a simple structured form.</p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="name">Your Name</label>
+          <input id="name" name="name" class="form-input" placeholder="Enter your name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input id="email" name="email" type="email" class="form-input" placeholder="Enter your email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="subject">Subject</label>
+          <input id="subject" name="subject" class="form-input" placeholder="What would you like to share?">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="message">Message</label>
+          <textarea id="message" name="message" rows="6" class="form-input" placeholder="Write your message"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Send Message</button>
+      </form>
+    </section>
+  </div>
 </div>
 {% endblock %}

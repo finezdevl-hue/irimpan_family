@@ -1,0 +1,52 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}{{ action }} {{ segment_type }} - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface2);
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">{{ action }} {{ segment_type }}</h1>
+    <p>Use {{ segment_type|lower }}s to organize members for filtering and WhatsApp messaging.</p>
+  </div>
+</div>
+
+<form method="post" class="card">
+  {% csrf_token %}
+  {% for field in form %}
+    {% if field.name == 'is_active' %}
+    <div class="form-group">
+      <div class="checkbox-field">
+        {{ field }}
+        <div><strong>{{ field.label }}</strong></div>
+      </div>
+      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% else %}
+    <div class="form-group">
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% endif %}
+  {% endfor %}
+  {% if form.non_field_errors %}<div class="message">{{ form.non_field_errors|join:", " }}</div>{% endif %}
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">{{ action }} {{ segment_type }}</button>
+    <a href="{% url 'admin_member_segments' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

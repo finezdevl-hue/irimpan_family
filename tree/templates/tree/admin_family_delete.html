@@ -1,0 +1,23 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Delete Family - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Delete Family</h1>
+    <p>This removes the family record from members that are currently assigned to it.</p>
+  </div>
+</div>
+
+<div class="card">
+  <p>Are you sure you want to delete <strong>{{ family.name }}</strong>?</p>
+  {% if family.members.count %}
+  <p class="muted" style="margin-top:0.75rem;">Assigned members: {{ family.members.count }}</p>
+  {% endif %}
+  <form method="post" class="admin-actions" style="margin-top:1rem;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Delete Family</button>
+    <a href="{% url 'admin_families' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

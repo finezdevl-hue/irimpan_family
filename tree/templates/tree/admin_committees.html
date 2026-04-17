@@ -1,0 +1,58 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Committees - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Committees</h1>
+    <p>Manage committee years, descriptions, and members with positions and photos.</p>
+  </div>
+  <div class="admin-actions">
+    <a href="{% url 'admin_committee_add' %}" class="btn btn-primary">Add Committee Year</a>
+    <a href="{% url 'admin_committee_member_add' %}" class="btn btn-secondary">Add Member</a>
+  </div>
+</div>
+
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Year</th>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Members</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for committee in committees %}
+      <tr>
+        <td>{{ committee.year }}</td>
+        <td>{{ committee.title }}</td>
+        <td>{% if committee.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td>{{ committee.members.count }}</td>
+        <td class="admin-actions">
+          <a href="{% url 'admin_committee_edit' committee.pk %}" class="btn btn-secondary">Edit Year</a>
+          <a href="{% url 'admin_committee_member_add' %}?committee={{ committee.pk }}" class="btn btn-secondary">Add Member</a>
+          <a href="{% url 'admin_committee_delete' committee.pk %}" class="btn btn-danger">Delete</a>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="5">
+          <strong>Members:</strong>
+          {% for member in committee.members.all %}
+            {{ member.position }} - {{ member.name }} 
+            <a href="{% url 'admin_committee_member_edit' member.pk %}">Edit</a>
+            <a href="{% url 'admin_committee_member_delete' member.pk %}">Delete</a>{% if not forloop.last %}, {% endif %}
+          {% empty %}
+            No members added yet.
+          {% endfor %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No committees added yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -85,6 +85,59 @@
   .csv-help code {
     word-break: break-word;
   }
+  .photo-cropper {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .crop-stage {
+    position: relative;
+    width: min(100%, 360px);
+    aspect-ratio: 1 / 1;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 12px, transparent 12px, transparent 24px), var(--surface2);
+  }
+  .crop-stage img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    user-select: none;
+    -webkit-user-drag: none;
+    cursor: grab;
+    transform-origin: top left;
+    max-width: none;
+  }
+  .crop-stage.dragging img {
+    cursor: grabbing;
+  }
+  .crop-stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(201, 168, 76, 0.28);
+    pointer-events: none;
+  }
+  .crop-controls {
+    display: grid;
+    gap: 0.6rem;
+    width: min(100%, 360px);
+  }
+  .crop-controls label {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .crop-controls input[type="range"] {
+    width: 100%;
+  }
+  .crop-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
 </style>
 {% endblock %}
 
@@ -115,9 +168,11 @@
     <div class="csv-help">
       <strong>Expected headers:</strong><br>
       <code>{{ csv_expected_headers|join:", " }}</code><br><br>
+      Use <code>family_name</code> or <code>family_id</code> to assign the member to an existing family.<br>
       Use <code>key</code> together with <code>father_key</code>, <code>mother_key</code>, and <code>spouse_key</code> to link rows within the same CSV.<br>
       Use <code>father_id</code>, <code>mother_id</code>, and <code>spouse_id</code> to connect imported rows to existing members already in the database.<br>
-      Dates must use <code>YYYY-MM-DD</code>.
+      Dates must use <code>YYYY-MM-DD</code>.<br>
+      `last_name` is optional now. Leave it blank if the person only uses one name.
     </div>
   </section>
   {% endif %}
@@ -136,10 +191,50 @@
       </div>
       {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
     </div>
-    {% else %}
+    {% elif field.name == 'has_multiple_spouses' %}
     <div class="form-group">
+      <div class="checkbox-field">
+        {{ field }}
+        <div class="checkbox-copy">
+          <strong>Multiple Spouses</strong>
+          <span>Turn this on to assign more than one spouse or partner to this member.</span>
+        </div>
+      </div>
+      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% elif field.name == 'family_photo' %}
+    <div class="form-group">
+      {% if form.instance.family and form.instance.family.photo %}
+      <img src="{{ form.instance.family.photo.url }}" class="photo-preview" alt="Current family photo">
+      <br>
+      {% endif %}
       <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
       {{ field }}
+      {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% else %}
+    <div class="form-group"{% if field.name == 'additional_spouses' %} id="additionalSpousesAdminGroup"{% endif %}>
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.name == 'photo' %}
+      <div class="photo-cropper" data-photo-cropper>
+        <div class="crop-stage" data-crop-stage style="display:none;">
+          <img data-crop-image alt="Photo crop preview">
+        </div>
+        <div class="crop-controls" style="display:none;" data-crop-controls>
+          <label>Zoom
+            <input type="range" min="1" max="3" step="0.01" value="1" data-crop-zoom>
+          </label>
+          <div class="crop-actions">
+            <button type="button" class="btn btn-secondary" data-crop-reset>Reset Crop</button>
+          </div>
+        </div>
+      </div>
+      {% if form.instance.family %}
+      <small class="muted">This is the member photo. To update the family photo, edit the assigned family record: <a href="{% url 'admin_family_edit' form.instance.family.pk %}">{{ form.instance.family.name }}</a>.</small>
+      {% endif %}
+      {% endif %}
       {% if field.name == 'bio' %}<small class="muted">Use the toolbar to add bold text, lists, and links.</small>{% endif %}
       {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
       {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
@@ -157,6 +252,152 @@
 {% block extra_js %}
 <script>
   (function () {
+    function initPhotoCropper() {
+      const input = document.getElementById("id_photo");
+      const cropper = document.querySelector("[data-photo-cropper]");
+      if (!input || !cropper || input.dataset.cropReady === "1") return;
+      input.dataset.cropReady = "1";
+
+      const stage = cropper.querySelector("[data-crop-stage]");
+      const image = cropper.querySelector("[data-crop-image]");
+      const controls = cropper.querySelector("[data-crop-controls]");
+      const zoomInput = cropper.querySelector("[data-crop-zoom]");
+      const resetBtn = cropper.querySelector("[data-crop-reset]");
+
+      let file = null;
+      let url = "";
+      let imgWidth = 0;
+      let imgHeight = 0;
+      let stageSize = 0;
+      let zoom = 1;
+      let offsetX = 0;
+      let offsetY = 0;
+      let baseScale = 1;
+      let dragging = false;
+      let dragStart = null;
+
+      function getStageSize() {
+        const rect = stage.getBoundingClientRect();
+        return rect.width || 360;
+      }
+
+      function updateImage() {
+        if (!imgWidth || !imgHeight) return;
+        stageSize = getStageSize();
+        const renderW = imgWidth * baseScale * zoom;
+        const renderH = imgHeight * baseScale * zoom;
+        image.style.width = `${renderW}px`;
+        image.style.height = `${renderH}px`;
+        image.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      }
+
+      function centerImage() {
+        stageSize = getStageSize();
+        baseScale = Math.max(stageSize / imgWidth, stageSize / imgHeight);
+        zoom = 1;
+        const renderW = imgWidth * baseScale * zoom;
+        const renderH = imgHeight * baseScale * zoom;
+        offsetX = Math.round((stageSize - renderW) / 2);
+        offsetY = Math.round((stageSize - renderH) / 2);
+        zoomInput.value = "1";
+        updateImage();
+      }
+
+      function loadFromUrl(dataUrl) {
+        const temp = new Image();
+        temp.onload = function () {
+          imgWidth = temp.naturalWidth;
+          imgHeight = temp.naturalHeight;
+          image.src = dataUrl;
+          stage.style.display = "";
+          controls.style.display = "";
+          centerImage();
+        };
+        temp.src = dataUrl;
+      }
+
+      input.addEventListener("change", function () {
+        const selected = input.files && input.files[0];
+        if (!selected) {
+          file = null;
+          delete input.dataset.cropped;
+          stage.style.display = "none";
+          controls.style.display = "none";
+          return;
+        }
+        delete input.dataset.cropped;
+        file = selected;
+        if (url) URL.revokeObjectURL(url);
+        url = URL.createObjectURL(file);
+        loadFromUrl(url);
+      });
+
+      zoomInput.addEventListener("input", function () {
+        zoom = parseFloat(zoomInput.value || "1");
+        updateImage();
+      });
+
+      resetBtn.addEventListener("click", function () {
+        if (!imgWidth || !imgHeight) return;
+        centerImage();
+      });
+
+      stage.addEventListener("mousedown", function (event) {
+        if (!file) return;
+        dragging = true;
+        stage.classList.add("dragging");
+        dragStart = { x: event.clientX, y: event.clientY, ox: offsetX, oy: offsetY };
+      });
+      window.addEventListener("mousemove", function (event) {
+        if (!dragging || !dragStart) return;
+        offsetX = dragStart.ox + (event.clientX - dragStart.x);
+        offsetY = dragStart.oy + (event.clientY - dragStart.y);
+        updateImage();
+      });
+      window.addEventListener("mouseup", function () {
+        dragging = false;
+        stage.classList.remove("dragging");
+      });
+
+      input.form.addEventListener("submit", async function (event) {
+        if (!file || !imgWidth || !imgHeight) return;
+        if (input.dataset.cropped === "1") return;
+        event.preventDefault();
+
+        const outputSize = 900;
+        const output = document.createElement("canvas");
+        output.width = outputSize;
+        output.height = outputSize;
+        const ratio = outputSize / stageSize;
+        const scaled = new Image();
+
+        await new Promise((resolve) => {
+          scaled.onload = resolve;
+          scaled.src = image.src;
+        });
+
+        const scaledWidth = imgWidth * baseScale * zoom;
+        const scaledHeight = imgHeight * baseScale * zoom;
+        const drawX = offsetX * ratio;
+        const drawY = offsetY * ratio;
+        const drawW = scaledWidth * ratio;
+        const drawH = scaledHeight * ratio;
+
+        const outCtx = output.getContext("2d");
+        outCtx.clearRect(0, 0, outputSize, outputSize);
+        outCtx.drawImage(scaled, drawX, drawY, drawW, drawH);
+
+        const blob = await new Promise((resolve) => output.toBlob(resolve, file.type === "image/png" ? "image/png" : "image/jpeg", 0.92));
+        if (!blob) return;
+        const newFile = new File([blob], file.name.replace(/\.[^.]+$/, "") + (file.type === "image/png" ? ".png" : ".jpg"), { type: blob.type });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(newFile);
+        input.files = dataTransfer.files;
+        input.dataset.cropped = "1";
+        input.form.requestSubmit();
+      });
+    }
+
     function initRichText(textarea) {
       if (!textarea || textarea.dataset.richReady === "1") return;
       textarea.dataset.richReady = "1";
@@ -201,6 +442,20 @@
     }
 
     document.querySelectorAll("textarea.rich-text-input").forEach(initRichText);
+    initPhotoCropper();
+
+    const multipleSpousesCheckbox = document.getElementById("id_has_multiple_spouses");
+    const additionalSpousesGroup = document.getElementById("additionalSpousesAdminGroup");
+
+    function syncAdditionalSpousesVisibility() {
+      if (!multipleSpousesCheckbox || !additionalSpousesGroup) return;
+      additionalSpousesGroup.style.display = multipleSpousesCheckbox.checked ? "" : "none";
+    }
+
+    if (multipleSpousesCheckbox) {
+      multipleSpousesCheckbox.addEventListener("change", syncAdditionalSpousesVisibility);
+      syncAdditionalSpousesVisibility();
+    }
   })();
 </script>
 {% endblock %}

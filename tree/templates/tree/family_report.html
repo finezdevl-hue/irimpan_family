@@ -1,0 +1,252 @@
+{% extends "tree/base.html" %}
+{% block title %}Family Report - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-shell {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .report-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 1.2rem 1.3rem;
+    box-shadow: var(--shadow);
+  }
+  .report-brand {
+    background: linear-gradient(135deg, rgba(19,153,166,0.12), rgba(255,255,255,0.98));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 1.4rem 1.5rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .report-brand h1 {
+    color: var(--cream);
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 0.3rem;
+  }
+  .report-brand p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .report-toolbar p {
+    color: var(--text-dim);
+    max-width: 700px;
+  }
+  .report-grid {
+    display: grid;
+    gap: 1.2rem;
+  }
+  .report-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 1.35rem;
+    box-shadow: var(--shadow);
+    break-inside: avoid;
+  }
+  .report-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .report-title h2 {
+    color: var(--cream);
+    font-size: 1.45rem;
+    margin-bottom: 0.25rem;
+  }
+  .report-sub {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+  .report-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.36rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(19,153,166,0.1);
+    color: var(--gold-dim);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .report-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .report-meta-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0.9rem;
+  }
+  .report-meta-item strong {
+    display: block;
+    color: var(--gold-dim);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.35rem;
+  }
+  .report-members {
+    overflow-x: auto;
+  }
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .report-table th,
+  .report-table td {
+    padding: 0.8rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  .report-table th {
+    color: var(--gold-dim);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .report-table td {
+    color: var(--text);
+  }
+  .report-empty {
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.5rem 1rem;
+    box-shadow: var(--shadow);
+  }
+  @media print {
+    nav,
+    footer,
+    .messages,
+    .report-actions {
+      display: none !important;
+    }
+    main {
+      max-width: none;
+      padding: 0;
+    }
+    .report-toolbar,
+    .report-card {
+      box-shadow: none;
+      border-color: #d7d7d7;
+    }
+    .report-card {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-shell">
+  <section class="report-brand">
+    <h1>Irimpan Kudumba Yogam</h1>
+    <p>Family Report</p>
+  </section>
+
+  <section class="report-toolbar">
+    <div>
+      <h1 class="section-title">Family Report</h1>
+      <p>Download or print a clean family-wise report with family name, guardian, address, and all members.</p>
+    </div>
+    <div class="admin-actions report-actions">
+      <button type="button" class="btn btn-primary" onclick="window.print()">Print / Save PDF</button>
+      <a href="{% url 'family_page' %}" class="btn btn-secondary">Back to Families</a>
+    </div>
+  </section>
+
+  <section class="report-meta">
+    <article class="report-meta-item">
+      <strong>Total Families</strong>
+      <span>{{ total_families }}</span>
+    </article>
+    <article class="report-meta-item">
+      <strong>Total Members</strong>
+      <span>{{ total_members }}</span>
+    </article>
+  </section>
+
+  <section class="report-grid">
+    {% for house in households %}
+    <article class="report-card">
+      <div class="report-head">
+        <div class="report-title">
+          <h2>{{ house.family_name }} Family</h2>
+          <div class="report-sub">Guardian: {{ house.guardian.full_name }}{% if house.partner %} and {{ house.partner.full_name }}{% endif %}</div>
+        </div>
+        <span class="report-badge">{% if house.is_separate_home %}Separate Home{% else %}Family Home{% endif %}</span>
+      </div>
+
+      <div class="report-meta">
+        <div class="report-meta-item">
+          <strong>Guardian</strong>
+          <span>{{ house.guardian.full_name }}</span>
+        </div>
+        <div class="report-meta-item">
+          <strong>Residents</strong>
+          <span>{{ house.resident_count }}</span>
+        </div>
+        <div class="report-meta-item">
+          <strong>Family Name</strong>
+          <span>{{ house.family_name }}</span>
+        </div>
+        <div class="report-meta-item">
+          <strong>Address</strong>
+          <span>{{ house.guardian.current_address|default:"-" }}</span>
+        </div>
+      </div>
+
+      <div class="report-members">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Gender</th>
+              <th>Birth Date</th>
+              <th>Phone</th>
+              <th>Place</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for member in house.members %}
+            <tr>
+              <td>{{ member.full_name }}</td>
+              <td>{{ member.get_gender_display }}</td>
+              <td>{{ member.birth_date|default:"-" }}</td>
+              <td>{{ member.phone|default:"-" }}</td>
+              <td>{{ member.birth_place|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+    {% empty %}
+    <div class="report-empty">
+      <h2 class="section-title">No Family Data Yet</h2>
+      <p class="muted">Add members first to generate a family-wise report.</p>
+    </div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

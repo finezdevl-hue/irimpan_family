@@ -1,0 +1,129 @@
+{% extends "tree/base.html" %}
+{% block title %}Committee Members - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .committee-page { display: grid; gap: 1.4rem; }
+  .committee-wrap {
+    padding: 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+  }
+  .committee-years { display: grid; gap: 1rem; }
+  .committee-year-card {
+    padding: 1.15rem;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.54);
+    border: 1px solid var(--line);
+  }
+  .committee-year-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .committee-year-copy h3 { color: var(--brand-strong); font-size: 1.8rem; }
+  .committee-year-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.08);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .committee-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .committee-card {
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background: rgba(255, 252, 246, 0.9);
+    box-shadow: var(--shadow-soft);
+  }
+  .committee-photo { height: 240px; background: var(--surface-soft); }
+  .committee-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .committee-photo .empty-photo {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-weight: 700;
+  }
+  .committee-body { padding: 1rem; }
+  .committee-body h3 { color: var(--brand-strong); font-size: 1.4rem; margin-bottom: 0.2rem; }
+  .committee-role {
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .committee-bio { margin-top: 0.55rem; }
+  @media (max-width: 980px) {
+    .committee-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="committee-page">
+
+  <section class="committee-wrap">
+    <div class="section-head" style="margin-bottom:1rem;">
+      <div class="section-copy">
+        <div class="section-kicker">Committee Directory</div>
+        <h2 class="section-title" style="font-size:2.6rem;">Committee members across the years</h2>
+        <p class="section-sub">Each committee record shows the year, leadership team, and member profiles added through the admin panel.</p>
+      </div>
+    </div>
+    <div class="committee-years">
+      {% for committee in committees %}
+      <section class="committee-year-card">
+        <div class="committee-year-head">
+          <div class="committee-year-copy">
+            <h3>{{ committee.title }}</h3>
+            {% if committee.description %}<p>{{ committee.description }}</p>{% endif %}
+          </div>
+          <span class="committee-year-badge">{{ committee.year }}</span>
+        </div>
+        <div class="committee-grid">
+          {% for member in committee.members.all %}
+          <article class="committee-card">
+            <div class="committee-photo">
+              {% if member.display_photo %}
+              <img src="{{ member.display_photo.url }}" alt="{{ member.name }}">
+              {% else %}
+              <div class="empty-photo">No Photo</div>
+              {% endif %}
+            </div>
+            <div class="committee-body">
+              <h3>{{ member.name }}</h3>
+              <div class="committee-role">{{ member.position }}</div>
+              {% if member.bio %}<p class="committee-bio">{{ member.bio }}</p>{% endif %}
+            </div>
+          </article>
+          {% empty %}
+          <p class="muted">No committee members added for this year yet.</p>
+          {% endfor %}
+        </div>
+      </section>
+      {% empty %}
+      <p class="muted">Committee details will appear here after they are added from the admin panel.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

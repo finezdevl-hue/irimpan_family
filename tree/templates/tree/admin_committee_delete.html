@@ -1,0 +1,22 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Delete Committee - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Delete Committee</h1>
+    <p>This will remove the committee year and all members inside it.</p>
+  </div>
+</div>
+
+<div class="card">
+  <p>Are you sure you want to delete <strong>{{ committee.year }} - {{ committee.title }}</strong>?</p>
+  <form method="post" style="margin-top:1rem;">
+    {% csrf_token %}
+    <div class="admin-actions">
+      <button type="submit" class="btn btn-danger">Delete Committee</button>
+      <a href="{% url 'admin_committees' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

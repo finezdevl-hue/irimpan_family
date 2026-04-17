@@ -34,6 +34,18 @@
     display: grid;
     gap: 0.5rem;
   }
+  .admin-nav-group {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .admin-nav-label {
+    color: var(--gold-dim);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+  }
   .admin-nav a {
     text-decoration: none;
     color: var(--text);
@@ -46,6 +58,20 @@
   .admin-nav a:hover {
     border-color: var(--gold-dim);
     color: var(--gold-dim);
+  }
+  .admin-nav-item-disabled {
+    color: var(--text-dim);
+    background: #f6fbfb;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    font-weight: 700;
+    opacity: 0.9;
+  }
+  .admin-nav-item-disabled small {
+    display: block;
+    margin-top: 0.2rem;
+    font-weight: 400;
   }
   .admin-content-card {
     padding: 1.5rem;
@@ -125,30 +151,83 @@
       {% endif %}
     </p>
     <nav class="admin-nav">
-      <a href="{% url 'admin_panel' %}">Dashboard</a>
-      {% if can_manage_members %}
-      <a href="{% url 'admin_members' %}">Members</a>
-      <a href="{% url 'admin_member_users' %}">Member Users</a>
+      <div class="admin-nav-group">
+        <span class="admin-nav-label">Overview</span>
+        <a href="{% url 'admin_panel' %}">Dashboard</a>
+      </div>
+
+      <div class="admin-nav-group">
+        <span class="admin-nav-label">Members</span>
+        {% if can_manage_members %}
+        <a href="{% url 'admin_members' %}">All Members</a>
+        <a href="{% url 'admin_families' %}">Families</a>
+        <a href="{% url 'admin_member_add' %}">Add Member</a>
+        <a href="{% url 'admin_member_users' %}">Member Users</a>
+        <a href="{% url 'admin_member_segments' %}">Groups</a>
+      {% else %}
+        <div class="admin-nav-item-disabled">All Members<small>Admin only</small></div>
+        <div class="admin-nav-item-disabled">Families<small>Admin only</small></div>
+        <div class="admin-nav-item-disabled">Add Member<small>Admin only</small></div>
+        <div class="admin-nav-item-disabled">Member Users<small>Admin only</small></div>
+        <div class="admin-nav-item-disabled">Groups<small>Admin only</small></div>
+        {% endif %}
+      </div>
+
+      <div class="admin-nav-group">
+        <span class="admin-nav-label">Messaging</span>
+        {% if can_manage_whatsapp %}
+        <a href="{% url 'admin_whatsapp_broadcast' %}">WhatsApp</a>
+        {% else %}
+        <div class="admin-nav-item-disabled">WhatsApp<small>Admin only</small></div>
+        {% endif %}
+      </div>
+
+      {% if can_manage_hero_images or can_manage_ads or can_manage_live_stream %}
+      <div class="admin-nav-group">
+        <span class="admin-nav-label">Website</span>
+        {% if can_manage_hero_images %}
+        <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_hero_image_add' %}{% else %}{% url 'admin_hero_images' %}{% endif %}">
+          {% if is_family_member_user and not is_admin_user %}Add Hero Image{% else %}Hero Images{% endif %}
+        </a>
+        {% endif %}
+        {% if can_manage_clergy %}
+        <a href="{% url 'admin_clergy_members' %}">Priests and Nuns</a>
+        {% endif %}
+        {% if can_manage_ads %}
+        <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_ad_add' %}{% else %}{% url 'admin_ads' %}{% endif %}">
+          {% if is_family_member_user and not is_admin_user %}Post Popup Ad{% else %}Popup Ads{% endif %}
+        </a>
+        {% endif %}
+        {% if can_manage_live_stream %}
+        <a href="{% url 'admin_live_stream' %}">
+          {% if is_family_member_user and not is_admin_user %}Update Live Stream{% else %}Live Stream{% endif %}
+        </a>
+        {% endif %}
+      </div>
       {% endif %}
-      {% if can_manage_events %}
-      <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_event_add' %}{% else %}{% url 'admin_events' %}{% endif %}">
-        {% if is_family_member_user and not is_admin_user %}Add Upcoming Event{% else %}Upcoming Events{% endif %}
-      </a>
-      {% endif %}
-      {% if can_manage_ads %}
-      <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_ad_add' %}{% else %}{% url 'admin_ads' %}{% endif %}">
-        {% if is_family_member_user and not is_admin_user %}Post Popup Ad{% else %}Popup Ads{% endif %}
-      </a>
-      {% endif %}
-      {% if can_manage_live_stream %}
-      <a href="{% url 'admin_live_stream' %}">
-        {% if is_family_member_user and not is_admin_user %}Update Live Stream{% else %}Live Stream{% endif %}
-      </a>
-      {% endif %}
-      {% if can_manage_gallery %}
-      <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_gallery_add' %}{% else %}{% url 'admin_gallery' %}{% endif %}">
-        {% if is_family_member_user and not is_admin_user %}Add Gallery Photo{% else %}Event Gallery{% endif %}
-      </a>
+
+      {% if can_manage_events or can_manage_gallery or can_manage_committee %}
+      <div class="admin-nav-group">
+        <span class="admin-nav-label">Content</span>
+        {% if can_manage_events %}
+        <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_event_add' %}{% else %}{% url 'admin_events' %}{% endif %}">
+          {% if is_family_member_user and not is_admin_user %}Add Upcoming Event{% else %}Upcoming Events{% endif %}
+        </a>
+        {% endif %}
+        {% if can_manage_committee %}
+        <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_committee_add' %}{% else %}{% url 'admin_committees' %}{% endif %}">
+          {% if is_family_member_user and not is_admin_user %}Add Committee{% else %}Committees{% endif %}
+        </a>
+        {% endif %}
+        {% if can_manage_committee %}
+        <a href="{% url 'admin_committee_member_add' %}">Add Committee Member</a>
+        {% endif %}
+        {% if can_manage_gallery %}
+        <a href="{% if is_family_member_user and not is_admin_user %}{% url 'admin_gallery_add' %}{% else %}{% url 'admin_gallery' %}{% endif %}">
+          {% if is_family_member_user and not is_admin_user %}Add Gallery Photo{% else %}Event Gallery{% endif %}
+        </a>
+        {% endif %}
+      </div>
       {% endif %}
     </nav>
   </aside>

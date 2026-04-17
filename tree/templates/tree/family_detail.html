@@ -46,6 +46,18 @@
     display: grid;
     gap: 0.7rem;
   }
+  .family-photo-wrap {
+    margin: 1rem 0;
+    overflow: hidden;
+    border-radius: 22px;
+    border: 1px solid var(--border);
+  }
+  .family-photo-wrap img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
   .summary-row {
     display: flex;
     justify-content: space-between;
@@ -114,6 +126,11 @@
   <div class="family-detail-grid">
     <section class="summary-card">
       <span class="detail-badge">{% if house.is_separate_home %}Separate Home{% else %}Family Home{% endif %}</span>
+      {% if house.family_photo_url %}
+      <div class="family-photo-wrap">
+        <img src="{{ house.family_photo_url }}" alt="{{ house.family_photo_alt }}">
+      </div>
+      {% endif %}
       <h1>{{ house.family_name }} Family</h1>
       <p class="summary-sub">Guardian: {{ house.guardian.full_name }}{% if house.partner %} &amp; {{ house.partner.full_name }}{% endif %}</p>
 
@@ -144,15 +161,18 @@
     <section class="members-card">
       <h2>Members</h2>
       <div class="member-grid">
-        {% for member in house.members %}
+        {% for row in house.member_rows %}
         <article class="member-tile">
-          <a href="{{ member.get_absolute_url }}">{{ member.full_name }}</a>
-          <p>{{ member.get_gender_display }}</p>
-          {% if member.birth_date or member.birth_place %}
+          {% if row.person.photo %}
+          <img src="{{ row.person.photo.url }}" alt="{{ row.person.full_name }}" class="photo-preview">
+          {% endif %}
+          <a href="{{ row.person.get_absolute_url }}">{{ row.person.full_name }}</a>
+          <p>{{ row.role }}</p>
+          {% if row.person.birth_date or row.person.birth_place %}
           <p>
-            {% if member.birth_date %}Born: {{ member.birth_date }}{% endif %}
-            {% if member.birth_date and member.birth_place %}<br>{% endif %}
-            {% if member.birth_place %}Place: {{ member.birth_place }}{% endif %}
+            {% if row.person.birth_date %}Born: {{ row.person.birth_date }}{% endif %}
+            {% if row.person.birth_date and row.person.birth_place %}<br>{% endif %}
+            {% if row.person.birth_place %}Place: {{ row.person.birth_place }}{% endif %}
           </p>
           {% endif %}
         </article>

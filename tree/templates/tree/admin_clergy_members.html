@@ -1,0 +1,46 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Priests and Nuns - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Priests and Nuns</h1>
+    <p>Manage the clergy names and photos that appear on the public page.</p>
+  </div>
+  <a href="{% url 'admin_clergy_member_add' %}" class="btn btn-primary">Add Clergy Member</a>
+</div>
+
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Preview</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in clergy_members %}
+      <tr>
+        <td>{{ person.name }}</td>
+        <td>
+          {% if person.image %}
+          <img src="{{ person.image.url }}" alt="{{ person.name }}" style="width:90px;height:90px;object-fit:cover;border-radius:14px;border:1px solid var(--border);">
+          {% else %}
+          -
+          {% endif %}
+        </td>
+        <td class="admin-actions">
+          <a href="{% url 'admin_clergy_member_edit' person.pk %}" class="btn btn-secondary">Edit</a>
+          <a href="{% url 'admin_clergy_member_delete' person.pk %}" class="btn btn-danger">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3">No clergy members added yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

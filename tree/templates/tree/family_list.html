@@ -1,0 +1,113 @@
+{% extends "tree/base.html" %}
+{% block title %}Family List - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .family-list-page {
+    display: grid;
+    gap: 1.4rem;
+  }
+  .family-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .family-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  .family-card-photo {
+    width: 100%;
+    min-height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+  .family-card-body {
+    padding: 1.25rem;
+    display: grid;
+    gap: 0.85rem;
+  }
+  .family-card-title {
+    font-size: 1.25rem;
+    color: var(--cream);
+    margin-bottom: 0.35rem;
+  }
+  .family-card-meta {
+    display: grid;
+    gap: 0.55rem;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+  .family-card-meta strong {
+    color: var(--gold-dim);
+  }
+  .family-card-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+  .family-card-subtitle {
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="family-list-page">
+  <section class="page-hero">
+    <span class="eyebrow">Family List</span>
+    <h1 class="section-title">A clean list of all family records.</h1>
+    <p class="section-sub">Browse every family record in a compact list format and open the full family page for details.</p>
+  </section>
+
+  <section class="summary-card">
+    <div class="record-meta-row">
+      <strong>Total Family Records</strong>
+      <span>{{ total_families }}</span>
+    </div>
+  </section>
+
+  {% if family_cards %}
+  <div class="family-list-grid">
+    {% for card in family_cards %}
+    <article class="family-card">
+      {% if card.photo_url %}
+      <img src="{{ card.photo_url }}" alt="{{ card.family.name }} photo" class="family-card-photo">
+      {% endif %}
+      <div class="family-card-body">
+        <div>
+          <h2 class="family-card-title">{{ card.family.name }}</h2>
+          <p class="family-card-subtitle">{{ card.family.bio|default:"No family bio available." }}</p>
+        </div>
+        <div class="family-card-meta">
+          <span><strong>{{ card.member_count }}</strong> member{% if card.member_count != 1 %}s{% endif %}</span>
+          <span><strong>{{ card.household_count }}</strong> household{% if card.household_count != 1 %}s{% endif %}</span>
+          {% if card.main_household %}
+          <span>Main home available</span>
+          {% else %}
+          <span>No main home listed</span>
+          {% endif %}
+        </div>
+        <div class="family-card-actions">
+          <a href="{% url 'family_record_detail' card.family.pk %}" class="btn btn-primary">View Family Page</a>
+          <a href="{% url 'separate_homes' %}" class="btn btn-secondary">Separate Homes</a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <article class="empty-gallery">
+    <h3 style="color:var(--brand-strong);font-size:2rem;margin-bottom:0.4rem;">No families found</h3>
+    <p>Create family records from the admin panel to populate this list.</p>
+  </article>
+  {% endif %}
+</div>
+{% endblock %}

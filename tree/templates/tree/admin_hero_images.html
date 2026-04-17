@@ -1,0 +1,40 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Hero Images - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Hero Images</h1>
+    <p>Manage the homepage hero slider images, their order, and active status.</p>
+  </div>
+  <a href="{% url 'admin_hero_image_add' %}" class="btn btn-primary">Add Hero Image</a>
+</div>
+
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead><tr><th>Title</th><th>Order</th><th>Status</th><th>Preview</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for hero_image in hero_images %}
+      <tr>
+        <td>{{ hero_image.title }}</td>
+        <td>{{ hero_image.sort_order }}</td>
+        <td>{% if hero_image.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td>
+          {% if hero_image.image %}
+          <img src="{{ hero_image.image.url }}" alt="{{ hero_image.title }}" style="width:90px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+          {% else %}
+          -
+          {% endif %}
+        </td>
+        <td class="admin-actions">
+          <a href="{% url 'admin_hero_image_edit' hero_image.pk %}" class="btn btn-secondary">Edit</a>
+          <a href="{% url 'admin_hero_image_delete' hero_image.pk %}" class="btn btn-danger">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No hero images added yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

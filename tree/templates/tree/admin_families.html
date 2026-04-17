@@ -1,0 +1,39 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Manage Families - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Manage Families</h1>
+    <p>Create named family records that can be assigned to members.</p>
+  </div>
+  <div class="admin-actions">
+    <a href="{% url 'admin_members' %}" class="btn btn-secondary">Members</a>
+    <a href="{% url 'admin_family_add' %}" class="btn btn-primary">Add Family</a>
+  </div>
+</div>
+
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr><th>Family Name</th><th>Members</th><th>Status</th><th>Bio</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for family in families %}
+      <tr>
+        <td>{{ family.name }}</td>
+        <td>{{ family.members.count }}</td>
+        <td>{% if family.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td>{{ family.bio|default:"-"|truncatechars:120 }}</td>
+        <td class="admin-actions">
+          <a href="{% url 'admin_family_edit' family.pk %}" class="btn btn-secondary">Edit</a>
+          <a href="{% url 'admin_family_delete' family.pk %}" class="btn btn-danger">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No families added yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

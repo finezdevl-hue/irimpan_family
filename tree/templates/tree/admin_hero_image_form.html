@@ -1,0 +1,57 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}{{ action }} Hero Image - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface2);
+  }
+  .checkbox-field input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--gold);
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">{{ action }} Hero Image</h1>
+    <p>Upload a homepage hero image and control its slide order.</p>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card">
+  {% csrf_token %}
+  {% for field in form %}
+    {% if field.name == 'is_active' %}
+    <div class="form-group">
+      <div class="checkbox-field">
+        {{ field }}
+        <div><strong>{{ field.label }}</strong></div>
+      </div>
+      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% else %}
+    <div class="form-group">
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% endif %}
+  {% endfor %}
+  {% if form.non_field_errors %}<div class="message">{{ form.non_field_errors|join:", " }}</div>{% endif %}
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">{{ action }} Hero Image</button>
+    <a href="{% url 'admin_hero_images' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

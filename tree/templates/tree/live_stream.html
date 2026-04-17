@@ -40,6 +40,42 @@
     height: 100%;
     border: 0;
   }
+  .stream-list {
+    display: grid;
+    gap: 0.85rem;
+  }
+  .stream-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+  }
+  .stream-pill {
+    display: block;
+    padding: 0.9rem 1rem;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    font-weight: 700;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+  .stream-pill:hover {
+    border-color: var(--gold-dim);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+  .stream-pill.is-active {
+    background: linear-gradient(135deg, rgba(19,153,166,0.14), rgba(255,255,255,0.98));
+    border-color: var(--gold);
+    color: var(--cream);
+  }
+  .stream-pill small {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
   .stream-empty {
     text-align: center;
     padding: 3rem 1.25rem;
@@ -60,10 +96,30 @@
 <div class="stream-shell">
   <section class="stream-hero">
     <h1 class="section-title">{% if stream %}{{ stream.title }}{% else %}Live Stream{% endif %}</h1>
-    <p>Watch the current family live stream here. When the admin updates the YouTube live link in the admin panel, this page will automatically show the new stream.</p>
+    <p>
+      {% if streams|length > 1 %}
+      Choose any active family live stream below. The player will switch as soon as you pick a stream.
+      {% else %}
+      Watch the current family live stream here. When the admin updates the YouTube live link in the admin panel, this page will automatically show the new stream.
+      {% endif %}
+    </p>
   </section>
 
   {% if stream %}
+  {% if streams|length > 1 %}
+  <section class="stream-list">
+    <h2 class="section-title" style="font-size:1.2rem;margin-bottom:0;">Active Streams</h2>
+    <div class="stream-list-grid">
+      {% for item in streams %}
+      <a href="{% url 'live_stream' %}?stream={{ item.pk }}" class="stream-pill {% if stream.pk == item.pk %}is-active{% endif %}">
+        {{ item.title }}
+        {% if stream.pk == item.pk %}<small>Now playing</small>{% else %}<small>Open this stream</small>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   <section class="stream-frame-card">
     <div class="stream-frame">
       <iframe

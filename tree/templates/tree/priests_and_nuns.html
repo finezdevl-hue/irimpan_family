@@ -1,0 +1,65 @@
+{% extends "tree/base.html" %}
+{% block title %}Priests and Nuns - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .clergy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1rem;
+  }
+  .clergy-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(246,244,238,0.98));
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .clergy-photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1.15;
+    object-fit: cover;
+    background: var(--surface2);
+  }
+  .clergy-body {
+    padding: 0.9rem 0.9rem 1.1rem;
+    text-align: center;
+  }
+  .clergy-name {
+    color: var(--cream);
+    font-size: 1rem;
+    line-height: 1.35;
+    margin: 0;
+  }
+  .clergy-empty {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    color: var(--text-dim);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-band">
+  <h1 class="section-title">Priests and Nuns</h1>
+  <p class="section-sub">Browse the priests and nuns added by the admin with their names and photos.</p>
+</section>
+
+<section class="clergy-grid">
+  {% for person in clergy_members %}
+  <article class="clergy-card">
+    {% if person.image %}
+    <img src="{{ person.image.url }}" alt="{{ person.name }}" class="clergy-photo">
+    {% endif %}
+    <div class="clergy-body">
+      <h2 class="clergy-name">{{ person.name }}</h2>
+    </div>
+  </article>
+  {% empty %}
+  <div class="clergy-empty">No priests or nuns have been added yet.</div>
+  {% endfor %}
+</section>
+{% endblock %}

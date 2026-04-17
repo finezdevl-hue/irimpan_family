@@ -288,25 +288,27 @@
     </div>
     {% endif %}
 
-    {% if person.spouse %}
+    {% if spouses %}
     <div class="section-card">
-      <h3>Spouse</h3>
+      <h3>{% if spouses|length == 1 %}Spouse{% else %}Spouses{% endif %}</h3>
       <div class="rel-grid">
-        <a href="{{ person.spouse.get_absolute_url }}" class="rel-card">
+        {% for spouse in spouses %}
+        <a href="{{ spouse.get_absolute_url }}" class="rel-card">
           <div class="rel-avatar">
-            {% if person.spouse.photo %}
-              <img src="{{ person.spouse.photo.url }}" alt="{{ person.spouse.full_name }}">
-            {% elif person.spouse.gender == 'M' %}
+            {% if spouse.photo %}
+              <img src="{{ spouse.photo.url }}" alt="{{ spouse.full_name }}">
+            {% elif spouse.gender == 'M' %}
               M
-            {% elif person.spouse.gender == 'F' %}
+            {% elif spouse.gender == 'F' %}
               F
             {% else %}
               P
             {% endif %}
           </div>
-          <div class="rel-name">{{ person.spouse.full_name }}</div>
+          <div class="rel-name">{{ spouse.full_name }}</div>
           <div class="rel-meta">Spouse</div>
         </a>
+        {% endfor %}
       </div>
     </div>
     {% endif %}

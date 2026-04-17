@@ -8,19 +8,24 @@
     <p>Add, edit, and remove family members.</p>
   </div>
   <div class="admin-actions">
+    <a href="{% url 'admin_families' %}" class="btn btn-secondary">Families</a>
+    <a href="{% url 'admin_member_segments' %}" class="btn btn-secondary">Groups</a>
+    <a href="{% url 'admin_whatsapp_broadcast' %}" class="btn btn-secondary">WhatsApp</a>
     <a href="{% url 'admin_member_users' %}" class="btn btn-secondary">Manage Member Users</a>
+    <a href="{% url 'admin_members_clear_all' %}" class="btn btn-danger">Clear All Members</a>
     <a href="{% url 'admin_member_add' %}" class="btn btn-primary">Add Member</a>
   </div>
 </div>
 <div class="admin-table-wrap">
   <table class="admin-table">
     <thead>
-      <tr><th>Name</th><th>Gender</th><th>Birth</th><th>Login</th><th>Actions</th></tr>
+      <tr><th>Name</th><th>Family</th><th>Gender</th><th>Birth</th><th>Login</th><th>Actions</th></tr>
     </thead>
     <tbody>
       {% for person in people %}
       <tr>
         <td>{{ person.full_name }}</td>
+        <td>{{ person.family.name|default:"-" }}</td>
         <td>{{ person.get_gender_display }}</td>
         <td>{{ person.birth_date|default:"-" }}</td>
         <td>
@@ -37,7 +42,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="5">No members found.</td></tr>
+      <tr><td colspan="6">No members found.</td></tr>
       {% endfor %}
     </tbody>
   </table>

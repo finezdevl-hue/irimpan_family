@@ -1,0 +1,23 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Delete Clergy Member - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Delete Clergy Member</h1>
+    <p>Remove {{ clergy_member.name }} from the public priests and nuns page.</p>
+  </div>
+</div>
+
+<div class="card">
+  <p>Are you sure you want to delete <strong>{{ clergy_member.name }}</strong>?</p>
+  {% if clergy_member.image %}
+  <img src="{{ clergy_member.image.url }}" alt="{{ clergy_member.name }}" style="width:180px;height:180px;object-fit:cover;border-radius:18px;border:1px solid var(--border);">
+  {% endif %}
+  <form method="post" class="admin-actions" style="margin-top:1rem;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a href="{% url 'admin_clergy_members' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

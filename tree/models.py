@@ -3,6 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.db import models
+from django.db.models import F
 from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
@@ -16,7 +17,7 @@ class Person(models.Model):
     ]
 
     first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='O')
     birth_date = models.DateField(null=True, blank=True)
     death_date = models.DateField(null=True, blank=True)
@@ -28,6 +29,7 @@ class Person(models.Model):
     living_separately = models.BooleanField(default=False)
     bio = models.TextField(blank=True)
     photo = models.ImageField(upload_to='photos/', null=True, blank=True)
+    family_photo = models.ImageField(upload_to='family_photos/', null=True, blank=True)
     father = models.ForeignKey(
         'self', null=True, blank=True,
         on_delete=models.SET_NULL,
@@ -43,6 +45,20 @@ class Person(models.Model):
         on_delete=models.SET_NULL,
         related_name='married_to'
     )
+    has_multiple_spouses = models.BooleanField(default=False)
+    additional_spouses = models.ManyToManyField(
+        'self',
+        blank=True,
+        symmetrical=True,
+    )
+    family = models.ForeignKey(
+        'Family',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='members',
+    )
+    groups = models.ManyToManyField('MemberGroup', blank=True, related_name='people')
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -56,14 +72,14 @@ class Person(models.Model):
         ordering = ['last_name', 'first_name']
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return self.full_name
 
     def get_absolute_url(self):
         return reverse('person_detail', kwargs={'pk': self.pk})
 
     @property
     def full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name}".strip()
 
     @property
     def is_alive(self):
@@ -88,6 +104,15 @@ class Person(models.Model):
         father_children = Person.objects.filter(father=self)
         mother_children = Person.objects.filter(mother=self)
         return (father_children | mother_children).distinct()
+
+    def get_spouses(self):
+        spouses = []
+        seen = set()
+        for spouse in [self.spouse, *self.additional_spouses.all()]:
+            if spouse and spouse.pk not in seen:
+                spouses.append(spouse)
+                seen.add(spouse.pk)
+        return spouses
 
     def get_siblings(self):
         siblings = Person.objects.none()
@@ -117,6 +142,8 @@ class Person(models.Model):
             'father_id': self.father_id,
             'mother_id': self.mother_id,
             'spouse_id': self.spouse_id,
+            'spouse_ids': [spouse.pk for spouse in self.get_spouses()],
+            'family_name': self.family.name if self.family else '',
             'generation': self.generation,
             'age': self.age,
             'is_alive': self.is_alive,
@@ -141,6 +168,62 @@ class Event(models.Model):
 
     def get_absolute_url(self):
         return reverse('event_detail', kwargs={'pk': self.pk})
+
+
+class MemberGroup(models.Model):
+    name = models.CharField(max_length=120, unique=True)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Family(models.Model):
+    name = models.CharField(max_length=160, unique=True)
+    bio = models.TextField(blank=True)
+    photo = models.ImageField(upload_to='family/', null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class HeroImage(models.Model):
+    title = models.CharField(max_length=200)
+    image = models.ImageField(upload_to='hero/')
+    alt_text = models.CharField(max_length=200, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['sort_order', '-updated_at', '-id']
+
+    def __str__(self):
+        return self.title
+
+
+class ClergyMember(models.Model):
+    name = models.CharField(max_length=200)
+    image = models.ImageField(upload_to='priest/')
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return self.name
 
 
 def gallery_upload_to(instance, filename):
@@ -267,3 +350,121 @@ class LiveStreamSettings(models.Model):
         if not video_id:
             return ''
         return f'https://www.youtube.com/embed/{video_id}?autoplay=1&rel=0'
+
+
+class Committee(models.Model):
+    year = models.CharField(max_length=40, unique=True)
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-year', '-updated_at', '-id']
+
+    def __str__(self):
+        return f'{self.year} - {self.title}'
+
+
+class CommitteeMember(models.Model):
+    committee = models.ForeignKey(Committee, on_delete=models.CASCADE, related_name='members')
+    person = models.ForeignKey(Person, null=True, blank=True, on_delete=models.SET_NULL, related_name='committee_roles')
+    name = models.CharField(max_length=200)
+    position = models.CharField(max_length=200)
+    photo = models.ImageField(upload_to='committee/', null=True, blank=True)
+    bio = models.TextField(blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['sort_order', 'position', 'name', 'id']
+
+    def __str__(self):
+        return f'{self.name} - {self.position}'
+
+    @property
+    def display_photo(self):
+        if self.photo:
+            return self.photo
+        if self.person and self.person.photo:
+            return self.person.photo
+        return None
+
+
+class WhatsAppBroadcast(models.Model):
+    STATUS_DRAFT = 'draft'
+    STATUS_SENT = 'sent'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, 'Draft'),
+        (STATUS_SENT, 'Sent'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    target_groups = models.ManyToManyField(MemberGroup, blank=True, related_name='broadcasts')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='whatsapp_broadcasts',
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    sent_count = models.PositiveIntegerField(default=0)
+    failed_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return self.title
+
+
+class WhatsAppBroadcastRecipient(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_SENT = 'sent'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_SENT, 'Sent'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    broadcast = models.ForeignKey(WhatsAppBroadcast, on_delete=models.CASCADE, related_name='recipients')
+    person = models.ForeignKey(Person, null=True, blank=True, on_delete=models.SET_NULL, related_name='whatsapp_broadcast_recipients')
+    phone = models.CharField(max_length=30)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    provider_message_id = models.CharField(max_length=120, blank=True)
+    error_message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return f'{self.phone} - {self.status}'
+
+
+class SiteVisitCounter(models.Model):
+    key = models.CharField(max_length=50, unique=True, default='public-site')
+    total_visits = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Site Visit Counter'
+        verbose_name_plural = 'Site Visit Counter'
+
+    def __str__(self):
+        return f'{self.key}: {self.total_visits}'
+
+    @classmethod
+    def increment(cls, key='public-site'):
+        counter, _ = cls.objects.get_or_create(key=key)
+        cls.objects.filter(pk=counter.pk).update(total_visits=F('total_visits') + 1)

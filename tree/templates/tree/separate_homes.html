@@ -1,0 +1,125 @@
+{% extends "tree/base.html" %}
+{% block title %}Separate Homes - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .separate-homes-page {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .separate-homes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .separate-home-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .separate-home-photo {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+  }
+  .separate-home-body {
+    padding: 1rem 1.1rem 1.3rem;
+  }
+  .separate-home-title {
+    font-size: 1.4rem;
+    color: var(--cream);
+    margin-bottom: 0.35rem;
+  }
+  .separate-home-meta {
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  .separate-home-meta strong {
+    color: var(--gold-dim);
+    font-weight: 700;
+  }
+  .separate-home-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-start;
+  }
+  .separate-home-actions a {
+    text-decoration: none;
+  }
+  .separate-home-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.1rem;
+    border-radius: 999px;
+    background: var(--brand);
+    color: white;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .separate-home-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+  }
+  .separate-home-body {
+    padding: 1rem 1.1rem 1.2rem;
+  }
+  @media (max-width: 720px) {
+    .separate-home-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="separate-homes-page">
+  <section class="page-hero">
+    <span class="eyebrow">Separate Homes</span>
+    <h1 class="section-title">Families living separately are highlighted in one place.</h1>
+    <p class="section-sub">This page shows every household marked as living separately, with family photo support where available.</p>
+  </section>
+
+  <section class="summary-card">
+    <div class="record-meta-row">
+      <strong>Total Separate Homes</strong>
+      <span>{{ total_separate_homes }}</span>
+    </div>
+  </section>
+
+  {% if households %}
+  <div class="separate-homes-grid">
+    {% for house in households %}
+    <article class="separate-home-card">
+      {% if house.family_photo_url %}
+      <img src="{{ house.family_photo_url }}" alt="{{ house.family_photo_alt }}" class="separate-home-photo">
+      {% endif %}
+      <div class="separate-home-body">
+        <div class="separate-home-title">{{ house.display_name }}</div>
+        <div class="separate-home-meta">
+          {% if house.family_record %}
+            {{ house.family_record.name }} family record
+          {% else %}
+            {{ house.family_name }} household
+          {% endif %}
+        </div>
+        <div class="separate-home-actions">
+          <a href="{% url 'family_detail' house.guardian.pk %}" class="separate-home-button">View More</a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <article class="empty-gallery">
+    <h3 style="color:var(--brand-strong);font-size:2rem;margin-bottom:0.4rem;">No separate homes found</h3>
+    <p>Mark members as living separately in the member form to show them here.</p>
+  </article>
+  {% endif %}
+</div>
+{% endblock %}

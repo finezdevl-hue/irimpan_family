@@ -1,0 +1,297 @@
+{% extends "tree/base.html" %}
+{% block title %}{{ family.name }} Family - Irimpan Kudumba Yogam{% endblock %}
+
+{% block extra_css %}
+<style>
+  .family-record-page {
+    display: grid;
+    gap: 1.4rem;
+  }
+
+  .family-record-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .family-record-summary,
+  .family-record-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+  }
+
+  .family-record-summary {
+    padding: 1.35rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .family-record-summary h2 {
+    color: var(--brand-strong);
+    font-size: 2.1rem;
+  }
+  .family-record-photo-wrap {
+    margin: 1rem 0;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+  }
+  .family-record-photo {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+
+  .record-meta {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .record-meta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .record-meta-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .record-meta-row strong {
+    color: var(--brand);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .record-meta-row span {
+    color: var(--text);
+    text-align: right;
+  }
+
+  .family-photo-wrap {
+    margin: 1rem 0;
+    overflow: hidden;
+    border-radius: 22px;
+    border: 1px solid var(--border);
+    max-width: 100%;
+  }
+
+  .family-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .family-record-content {
+    padding: 1.35rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .household-section {
+    padding: 1rem;
+    border-radius: 24px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.54);
+  }
+
+  .household-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .household-head h3 {
+    color: var(--brand-strong);
+    font-size: 1.7rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .household-note {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  .household-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.38rem 0.72rem;
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.08);
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .household-tag.separate {
+    background: rgba(160, 80, 120, 0.09);
+    color: var(--female);
+  }
+
+  .member-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  .member-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.72rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.78);
+    text-decoration: none;
+  }
+
+  .member-chip:hover {
+    border-color: rgba(15, 118, 110, 0.22);
+  }
+
+  .member-chip-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(127, 85, 57, 0.12);
+    color: var(--brand-strong);
+    font-size: 0.72rem;
+    font-weight: 800;
+    flex: 0 0 auto;
+  }
+
+  .member-chip-name {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .member-chip-role {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 980px) {
+    .family-record-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="family-record-page">
+  <div>
+    <a href="{% url 'family_page' %}" style="color:var(--text-dim);text-decoration:none;font-size:0.92rem;">&larr; Back to Family Page</a>
+  </div>
+
+  <section class="page-hero">
+    <span class="eyebrow">Family Page</span>
+    <h1 class="section-title">{{ family.name }} &amp; Family</h1>
+    <p class="section-sub">A dedicated page for this family record, showing the main household and any linked separate homes in one place.</p>
+  </section>
+
+  <section class="family-record-grid">
+    <aside class="family-record-summary">
+      <div>
+        <div class="section-kicker">Family Overview</div>
+        <h2>{{ family.name }} Family</h2>
+        {% if family.photo %}
+        <div class="family-photo-wrap">
+          <img src="{{ family.photo.url }}" alt="{{ family.name }} family photo" class="family-photo">
+        </div>
+        {% endif %}
+        {% if family.bio %}
+        <p>{{ family.bio }}</p>
+        {% endif %}
+      </div>
+      <div class="record-meta">
+        <div class="record-meta-row">
+          <strong>Total Homes</strong>
+          <span>{{ household_count }}</span>
+        </div>
+        <div class="record-meta-row">
+          <strong>Main Home</strong>
+          <span>{% if main_household %}Available{% else %}Not listed{% endif %}</span>
+        </div>
+        <div class="record-meta-row">
+          <strong>Separate Homes</strong>
+          <span>{{ separate_households|length }}</span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="family-record-content">
+      {% if main_household %}
+      <article class="household-section">
+        <div class="household-head">
+          <div>
+            <h3>Main Family Home</h3>
+            <div class="household-note">Primary household for this family record.</div>
+          </div>
+          <span class="household-tag">Main</span>
+        </div>
+        <div class="member-list">
+          {% for row in main_household.member_rows %}
+          <a href="{{ row.person.get_absolute_url }}" class="member-chip">
+            <span class="member-chip-badge">{{ row.person.full_name|slice:":1"|upper }}</span>
+            <span class="member-chip-name">{{ row.person.full_name }}</span>
+            <span class="member-chip-role">{% if row.role == 'Head' %}Head{% elif row.role == 'Spouse' %}Spouse{% else %}Child{% endif %}</span>
+          </a>
+          {% endfor %}
+        </div>
+      </article>
+      {% endif %}
+
+      {% for house in separate_households %}
+      <article class="household-section">
+        <div class="household-head">
+          <div>
+            <h3>{{ house.display_name }}</h3>
+            <div class="household-note">Separate household connected to this family.</div>
+          </div>
+          <span class="household-tag separate">Separate</span>
+        </div>
+        <div class="member-list">
+          {% for row in house.member_rows %}
+          <a href="{{ row.person.get_absolute_url }}" class="member-chip">
+            <span class="member-chip-badge">{{ row.person.full_name|slice:":1"|upper }}</span>
+            <span class="member-chip-name">{{ row.person.full_name }}</span>
+            <span class="member-chip-role">{% if row.role == 'Head' %}Head{% elif row.role == 'Spouse' %}Spouse{% else %}Child{% endif %}</span>
+          </a>
+          {% endfor %}
+        </div>
+      </article>
+      {% empty %}
+      {% if not main_household %}
+      <section class="info-card">
+        <h3 style="color:var(--brand-strong);font-size:1.8rem;margin-bottom:0.4rem;">No household information yet</h3>
+        <p>This family record does not have household details to display yet.</p>
+      </section>
+      {% endif %}
+      {% endfor %}
+    </section>
+  </section>
+</div>
+{% endblock %}

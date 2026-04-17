@@ -4,6 +4,10 @@
 {% block extra_css %}
 {{ block.super }}
 <style>
+  .stream-admin-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
   .checkbox-field {
     display: flex;
     align-items: center;
@@ -27,6 +31,22 @@
     color: var(--cream);
     margin-bottom: 0.2rem;
   }
+  .stream-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: rgba(19,153,166,0.12);
+    color: var(--gold-dim);
+    border: 1px solid var(--border);
+  }
+  .stream-status.is-off {
+    background: rgba(127,42,42,0.08);
+    color: #7f2a2a;
+  }
 </style>
 {% endblock %}
 
@@ -34,57 +54,105 @@
 <div class="admin-head">
   <div>
     <h1 class="section-title">Live Stream</h1>
-    <p>Paste the YouTube live link here and the public Live Stream page will play it automatically.</p>
+    <p>Add and manage multiple YouTube live streams. The navbar will show a dropdown automatically when more than one stream is active.</p>
   </div>
 </div>
 
-<form method="post" class="card">
-  {% csrf_token %}
-  {% for field in form %}
-    {% if field.name == 'is_active' %}
-    <div class="form-group">
-      <div class="checkbox-field">
-        {{ field }}
-        <div class="checkbox-copy">
-          <strong>{{ field.label }}</strong>
-          <span>Turn this off to hide the live stream page embed until you are ready.</span>
+<div class="stream-admin-grid">
+  <form method="post" class="card">
+    {% csrf_token %}
+    {% for field in form %}
+      {% if field.name == 'is_active' %}
+      <div class="form-group">
+        <div class="checkbox-field">
+          {{ field }}
+          <div class="checkbox-copy">
+            <strong>{{ field.label }}</strong>
+            <span>Turn this off to hide this stream from the public navbar and live stream page.</span>
+          </div>
         </div>
+        {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
       </div>
-      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
-    </div>
-    {% else %}
-    <div class="form-group">
-      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.name == 'youtube_url' %}<small class="muted">You can paste a normal watch link, a live link, a share link, or an embed link.</small>{% endif %}
-      {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
-    </div>
-    {% endif %}
-  {% endfor %}
+      {% else %}
+      <div class="form-group">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.name == 'youtube_url' %}<small class="muted">You can paste a normal watch link, a live link, a share link, or an embed link.</small>{% endif %}
+        {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+      </div>
+      {% endif %}
+    {% endfor %}
 
-  {% if form.non_field_errors %}
-  <div class="message">{{ form.non_field_errors|join:", " }}</div>
+    {% if form.non_field_errors %}
+    <div class="message">{{ form.non_field_errors|join:", " }}</div>
+    {% endif %}
+
+    <div class="admin-actions">
+      <button type="submit" class="btn btn-primary">
+        {% if form_mode == 'edit' %}Update Live Stream{% else %}Add Live Stream{% endif %}
+      </button>
+      {% if form_mode == 'edit' %}
+      <a href="{% url 'admin_live_stream' %}" class="btn btn-secondary">Add Another Stream</a>
+      {% endif %}
+      <a href="{% url 'live_stream' %}" class="btn btn-secondary">Open Public Page</a>
+    </div>
+  </form>
+
+  {% if stream and stream.embed_url %}
+  <div class="card">
+    <h2 class="section-title" style="margin-bottom:0.8rem;">Stream Preview</h2>
+    <div style="position:relative;width:100%;padding-top:56.25%;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#dff2f3,#eef8f8);">
+      <iframe
+        src="{{ stream.embed_url }}"
+        title="{{ stream.title }}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        style="position:absolute;inset:0;width:100%;height:100%;border:0;">
+      </iframe>
+    </div>
+  </div>
   {% endif %}
 
-  <div class="admin-actions">
-    <button type="submit" class="btn btn-primary">Save Live Stream</button>
-    <a href="{% url 'live_stream' %}" class="btn btn-secondary">Open Public Page</a>
-  </div>
-</form>
+  <div class="card">
+    <div class="admin-head" style="margin-bottom:0.9rem;">
+      <div>
+        <h2 class="section-title" style="margin-bottom:0;">Saved Streams</h2>
+        <p>Active streams appear in the navbar. Inactive streams stay saved for later use.</p>
+      </div>
+    </div>
 
-{% if stream and stream.embed_url %}
-<hr class="divider">
-<div class="card">
-  <h2 class="section-title" style="margin-bottom:0.8rem;">Current Stream Preview</h2>
-  <div style="position:relative;width:100%;padding-top:56.25%;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#dff2f3,#eef8f8);">
-    <iframe
-      src="{{ stream.embed_url }}"
-      title="{{ stream.title }}"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowfullscreen
-      style="position:absolute;inset:0;width:100%;height:100%;border:0;">
-    </iframe>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in streams %}
+          <tr>
+            <td>{{ item.title }}</td>
+            <td>
+              <span class="stream-status {% if not item.is_active %}is-off{% endif %}">
+                {% if item.is_active %}Active{% else %}Inactive{% endif %}
+              </span>
+            </td>
+            <td>{{ item.updated_at|date:"M d, Y H:i" }}</td>
+            <td class="admin-actions">
+              <a href="{% url 'live_stream' %}?stream={{ item.pk }}" class="btn btn-secondary">View</a>
+              <a href="{% url 'admin_live_stream_edit' item.pk %}" class="btn btn-secondary">Edit</a>
+              <a href="{% url 'admin_live_stream_delete' item.pk %}" class="btn btn-danger">Delete</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4">No live streams added yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
-{% endif %}
 {% endblock %}

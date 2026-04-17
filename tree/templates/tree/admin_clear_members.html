@@ -1,0 +1,22 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Clear All Members - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Clear All Members</h1>
+    <p>This permanently deletes every family member record from the database.</p>
+  </div>
+</div>
+
+<div class="card">
+  <p>Members currently in the system: <strong>{{ member_count }}</strong></p>
+  <p class="muted" style="margin-top:0.75rem;">This will remove all member profiles, family links, spouse links, and related member references. It will not delete your user accounts.</p>
+
+  <form method="post" class="admin-actions" style="margin-top:1.25rem;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Delete All Members</button>
+    <a href="{% url 'admin_members' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "tree/base.html" %}
+{% load static %}
+{% block title %}{{ souvenir_title }} - Souvenir{% endblock %}
+
+{% block extra_css %}
+<style>
+  .souvenir-shell {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .souvenir-hero {
+    background:
+      linear-gradient(135deg, rgba(19,153,166,0.12), rgba(255,255,255,0.96)),
+      #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .souvenir-hero h1 {
+    color: var(--cream);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    margin-bottom: 0.45rem;
+  }
+  .souvenir-hero p {
+    max-width: 780px;
+    margin: 0 auto;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+  .souvenir-meta {
+    display: inline-flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  .souvenir-badge {
+    padding: 0.38rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(19,153,166,0.1);
+    color: var(--gold-dim);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+  .souvenir-pages {
+    display: grid;
+    gap: 1.2rem;
+  }
+  .souvenir-page-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+  }
+  .souvenir-page-label {
+    color: var(--gold-dim);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+  }
+  .souvenir-page-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: #fff;
+  }
+  .souvenir-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.9rem;
+  }
+  .souvenir-thumb {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.65rem;
+    box-shadow: var(--shadow);
+  }
+  .souvenir-thumb img {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    display: block;
+    border-radius: 14px;
+    background: var(--surface2);
+  }
+  .souvenir-thumb-name {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    margin-top: 0.55rem;
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="souvenir-shell">
+  <section class="souvenir-hero">
+    <h1>{{ souvenir_title }}</h1>
+    <p>This souvenir page is built directly from the PDF you provided. The original page layouts are preserved as images so the Malayalam text, family details, and embedded photos display correctly.</p>
+    <div class="souvenir-meta">
+      <span class="souvenir-badge">{{ souvenir_pages|length }} souvenir pages</span>
+      <span class="souvenir-badge">{{ souvenir_images|length }} extracted PDF images</span>
+    </div>
+  </section>
+
+  <section class="souvenir-pages">
+    {% for page in souvenir_pages %}
+    <article class="souvenir-page-card">
+      <div class="souvenir-page-label">Page {{ forloop.counter }}</div>
+      <img src="{% static page %}" alt="{{ souvenir_title }} page {{ forloop.counter }}">
+    </article>
+    {% endfor %}
+  </section>
+
+  {% if souvenir_images %}
+  <section>
+    <div class="section-head">
+      <div class="section-copy">
+        <h2 class="section-title">Extracted Images</h2>
+        <p class="section-sub">Images detected inside the PDF are also shown separately here.</p>
+      </div>
+    </div>
+    <div class="souvenir-gallery">
+      {% for image in souvenir_images %}
+      <article class="souvenir-thumb">
+        <img src="{% static image %}" alt="{{ souvenir_title }} extracted image {{ forloop.counter }}">
+        <div class="souvenir-thumb-name">{{ image|cut:"tree/souvenir/valiyaveedu/" }}</div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

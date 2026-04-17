@@ -1,0 +1,36 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}{{ action }} Family - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">{{ action }} Family</h1>
+    <p>Add a family name and bio so members can be grouped under it.</p>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card">
+  {% csrf_token %}
+  {% for field in form %}
+  {% if field.name == 'is_active' %}
+  <div class="form-group">
+    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.9rem 1rem;border:1px solid var(--border);border-radius:12px;background:var(--surface2);">
+      {{ field }}
+      <div class="muted">Keep this enabled to allow assigning it to members.</div>
+    </div>
+    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+  </div>
+  {% else %}
+  <div class="form-group">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+  </div>
+  {% endif %}
+  {% endfor %}
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">{{ action }} Family</button>
+    <a href="{% url 'admin_families' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

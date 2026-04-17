@@ -1,0 +1,83 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}WhatsApp Broadcast - Irimpan Kudumba Yogam{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">WhatsApp Broadcast</h1>
+    <p>Select groups and send one WhatsApp message to all matching members.</p>
+  </div>
+  <div class="admin-actions">
+    <a href="{% url 'admin_member_segments' %}" class="btn btn-secondary">Manage Segments</a>
+  </div>
+</div>
+
+{% if not provider_ready %}
+<div class="message" style="margin-bottom:1rem;">
+  WhatsApp Cloud API credentials are missing. Add `WHATSAPP_ACCESS_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` to enable sending.
+</div>
+{% endif %}
+
+<form method="post" class="card">
+  {% csrf_token %}
+  {% for field in form %}
+  <div class="form-group">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.name == 'message' %}
+    <small class="muted">Meta can reject free-form messages outside allowed conversation windows. Use approved WhatsApp templates if your account requires them.</small>
+    {% endif %}
+    {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
+  </div>
+  {% endfor %}
+  {% if form.non_field_errors %}<div class="message">{{ form.non_field_errors|join:", " }}</div>{% endif %}
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary" {% if not provider_ready %}disabled{% endif %}>Send WhatsApp Message</button>
+  </div>
+</form>
+
+{% if preview_recipients %}
+<hr class="divider">
+<div class="card">
+  <h2 class="section-title" style="margin-bottom:0.8rem;">Matched Members</h2>
+  <p class="muted" style="margin-bottom:0.8rem;">Preview of recipients matched by your selected groups.</p>
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th>Name</th><th>Phone</th></tr></thead>
+      <tbody>
+        {% for person in preview_recipients %}
+        <tr>
+          <td>{{ person.full_name }}</td>
+          <td>{{ person.phone|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<hr class="divider">
+
+<div class="card">
+  <h2 class="section-title" style="margin-bottom:0.8rem;">Recent Broadcasts</h2>
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th>Title</th><th>Status</th><th>Sent</th><th>Failed</th><th>Created</th></tr></thead>
+      <tbody>
+        {% for item in recent_broadcasts %}
+        <tr>
+          <td>{{ item.title }}</td>
+          <td>{{ item.get_status_display }}</td>
+          <td>{{ item.sent_count }}</td>
+          <td>{{ item.failed_count }}</td>
+          <td>{{ item.created_at|date:"M d, Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No WhatsApp broadcasts sent yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

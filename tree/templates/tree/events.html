@@ -3,98 +3,107 @@
 
 {% block extra_css %}
 <style>
-  .events-wrap {
-    display: grid;
-    gap: 1.25rem;
-  }
+  .events-wrap { display: grid; gap: 1.4rem; }
   .events-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
-    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
+    gap: 1rem;
     justify-content: start;
   }
   .event-box {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1rem;
-    box-shadow: var(--shadow);
-    min-height: 460px;
     display: flex;
     flex-direction: column;
     text-decoration: none;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    overflow: hidden;
+    border-radius: 28px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   }
   .event-box:hover {
-    transform: translateY(-3px);
-    border-color: var(--gold);
-    box-shadow: 0 16px 28px rgba(16, 111, 121, 0.14);
+    transform: translateY(-4px);
+    box-shadow: 0 28px 54px rgba(70, 43, 24, 0.14);
+    border-color: rgba(15, 118, 110, 0.16);
+  }
+  .event-box-media {
+    position: relative;
+    background: var(--surface-soft);
+  }
+  .event-box-media::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 55%;
+    background: linear-gradient(180deg, transparent, rgba(31, 21, 14, 0.2));
+    pointer-events: none;
   }
   .event-box img {
     width: 100%;
-    height: 220px;
+    height: 230px;
     object-fit: contain;
-    border-radius: 12px;
     display: block;
-    margin-bottom: 0.9rem;
-    background: var(--surface2);
+    background: var(--surface-soft);
+  }
+  .event-box-body {
+    padding: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    height: 100%;
   }
   .event-tag {
-    display: inline-block;
-    background: var(--surface2);
-    color: var(--gold-dim);
+    display: inline-flex;
+    width: fit-content;
+    padding: 0.35rem 0.72rem;
     border-radius: 999px;
-    padding: 0.25rem 0.7rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    background: rgba(15, 118, 110, 0.08);
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin-bottom: 0.65rem;
-    align-self: flex-start;
   }
-  .event-box h3 {
-    color: var(--cream);
-    font-size: 1.05rem;
-    margin-bottom: 0.65rem;
+  .event-box h3 { color: var(--brand-strong); font-size: 1.8rem; }
+  .event-info { color: var(--text-dim); font-size: 0.92rem; }
+  .event-info strong { color: var(--brand); }
+  .event-meta {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
-  .event-info {
-    color: var(--text);
-    font-size: 0.9rem;
-    margin-bottom: 0.4rem;
-  }
-  .event-info strong {
-    color: var(--gold-dim);
-  }
-  .event-desc {
-    color: var(--text-dim);
-    font-size: 0.9rem;
-    line-height: 1.55;
-    margin-top: 0.6rem;
-    flex-grow: 1;
+  .event-desc { margin-top: 0.1rem; flex-grow: 1; line-height: 1.7; }
+  .event-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 0.3rem;
   }
   .event-link {
-    margin-top: 0.9rem;
-    color: var(--gold-dim);
-    font-size: 0.88rem;
-    font-weight: 700;
+    color: var(--brand-strong);
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
+  .event-link::after { content: " →"; }
   .empty-box {
-    background: #ffffff;
+    padding: 2rem;
+    border-radius: 28px;
     border: 1px dashed var(--border);
-    border-radius: 16px;
-    padding: 1.5rem;
+    background: rgba(255,255,255,0.46);
     text-align: center;
-    color: var(--text-dim);
   }
   @media (max-width: 640px) {
     .events-grid {
       grid-template-columns: minmax(0, 1fr);
     }
-    .event-box {
-      min-height: 0;
-    }
     .event-box img {
-      height: 200px;
+      height: 210px;
     }
   }
 </style>
@@ -102,33 +111,44 @@
 
 {% block content %}
 <div class="events-wrap">
-  <section class="hero-band">
-    <h1 class="section-title">Upcoming Events</h1>
-    <p class="section-sub">Family gatherings, celebrations, memorials, and important shared dates.</p>
+  <section class="page-hero">
+    <span class="eyebrow">Events</span>
+    <h1 class="section-title">Upcoming gatherings deserve stronger presentation.</h1>
+    <p class="section-sub">This page now treats every event as a featured card with better spacing, clearer information hierarchy, and a more polished visual rhythm.</p>
   </section>
-
   {% if upcoming_events %}
   <section class="events-grid">
     {% for event in upcoming_events %}
     <a href="{{ event.get_absolute_url }}" class="event-box">
-      {% if event.image %}
-      <img src="{{ event.image.url }}" alt="{{ event.title }}">
-      {% endif %}
-      {% if event.tag %}
-      <span class="event-tag">{{ event.tag }}</span>
-      {% endif %}
-      <h3>{{ event.title }}</h3>
-      <p class="event-info"><strong>Date:</strong> {{ event.event_date|date:"F d, Y" }}</p>
-      <p class="event-info"><strong>Location:</strong> {{ event.location|default:"To be announced" }}</p>
-      <p class="event-desc">{{ event.description|truncatewords:24 }}</p>
-      <span class="event-link">View Details</span>
+      <div class="event-box-media">
+        {% if event.image %}
+        <img src="{{ event.image.url }}" alt="{{ event.title }}">
+        {% endif %}
+      </div>
+      <div class="event-box-body">
+        {% if event.tag %}
+        <span class="event-tag">{{ event.tag }}</span>
+        {% else %}
+        <span class="event-tag">Family Event</span>
+        {% endif %}
+        <h3>{{ event.title }}</h3>
+        <div class="event-meta">
+          <p class="event-info"><strong>Date:</strong> {{ event.event_date|date:"F d, Y" }}</p>
+          <p class="event-info"><strong>Location:</strong> {{ event.location|default:"To be announced" }}</p>
+        </div>
+        <p class="event-desc">{{ event.description|truncatewords:24 }}</p>
+        <div class="event-footer">
+          <span class="muted">Family gathering details</span>
+          <span class="event-link">View Details</span>
+        </div>
+      </div>
     </a>
     {% endfor %}
   </section>
   {% else %}
   <div class="empty-box">
-    <h3 style="color:var(--cream); margin-bottom:0.45rem;">No events added yet</h3>
-    <p>Add upcoming events from the custom admin panel and they will appear here.</p>
+    <h3 style="color:var(--brand-strong);font-size:2rem;margin-bottom:0.4rem;">No events added yet</h3>
+    <p>Add upcoming events from the admin panel and they will appear here.</p>
   </div>
   {% endif %}
 </div>

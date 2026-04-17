@@ -1,239 +1,88 @@
 {% extends "tree/base.html" %}
-{% load static %}
-{% block title %}കുടുംബചരിത്രം - ഇരിമ്പൻ കുടുംബയോഗം{% endblock %}
+{% block title %}Family History - Irimpan Kudumba Yogam{% endblock %}
 
 {% block extra_css %}
 <style>
-  .history-page {
+  .history-page { display: grid; gap: 1.4rem; }
+  .history-grid {
     display: grid;
-    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+    gap: 1.2rem;
   }
-
-  .history-hero {
-    background: #ffffff;
+  .history-card, .source-card {
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 26px;
-    padding: 2rem;
+    border-radius: 30px;
     box-shadow: var(--shadow);
-    text-align: center;
+    backdrop-filter: blur(14px);
   }
-  .history-hero h1 {
-    font-size: clamp(2rem, 4vw, 3rem);
-    color: var(--cream);
-    margin-bottom: 0.5rem;
+  .history-card, .source-card { padding: 1.5rem; }
+  .history-card { display: grid; gap: 1.2rem; }
+  .history-section {
+    padding: 1rem 1.1rem;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.52);
+    border: 1px solid var(--line);
   }
-  .history-hero p {
-    color: var(--text-dim);
-    max-width: 760px;
-    margin: 0 auto;
-    font-size: 1rem;
+  .history-section h3, .source-card h2 {
+    color: var(--brand-strong);
+    font-size: 1.6rem;
+    margin-bottom: 0.45rem;
   }
-
-  .history-card {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-  }
-
-  .history-meta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 0.9rem;
-    border-radius: 999px;
-    background: rgba(19,153,166,0.1);
-    color: var(--gold-dim);
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    margin-bottom: 1rem;
-  }
-
-  .history-section-title {
-    font-size: 1.3rem;
-    color: var(--cream);
-    margin-bottom: 1rem;
-  }
-
-  .history-body {
-    display: grid;
-    gap: 1rem;
-    color: var(--text);
-    font-size: 1.02rem;
-    line-height: 1.95;
-  }
-
-  .history-body p {
-    margin: 0;
-  }
-
   .history-signoff {
     display: grid;
-    gap: 0.35rem;
-    margin-top: 1rem;
+    gap: 0.2rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    color: var(--cream);
+    border-top: 1px solid var(--line);
   }
-  .history-signoff .role {
-    color: var(--text-dim);
-    font-size: 0.95rem;
-  }
-
-  .committee-wrap {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 1.2rem 1.2rem 1.4rem;
-    box-shadow: var(--shadow);
-  }
-  .committee-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-  }
-  .committee-card {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    overflow: hidden;
-    text-align: center;
-  }
-  .committee-photo {
-    background: #eef8f8;
-    height: 230px;
-  }
-  .committee-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-    background: #eef8f8;
-  }
-  .committee-body {
-    padding: 1rem;
-  }
-  .committee-body h3 {
-    font-size: 1rem;
-    color: var(--cream);
-    margin-bottom: 0.25rem;
-  }
-  .committee-role {
-    color: var(--gold-dim);
-    font-size: 0.88rem;
-    font-weight: 700;
-  }
-
-  @media (max-width: 768px) {
-    .history-hero,
-    .history-card {
-      padding: 1.4rem;
-    }
-    .history-body {
-      font-size: 0.98rem;
-      line-height: 1.85;
-    }
-    .committee-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .committee-photo {
-      height: 210px;
-    }
-  }
-
-  @media (max-width: 520px) {
-    .committee-grid {
-      grid-template-columns: 1fr;
-    }
+  .history-signoff strong { color: var(--brand-strong); }
+  .source-card ul { padding-left: 1.2rem; color: var(--text-dim); }
+  .source-card li + li { margin-top: 0.55rem; }
+  .source-card a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  @media (max-width: 980px) {
+    .history-grid { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="history-page">
-  <section class="history-hero">
-    <h1>കുടുംബചരിത്രം</h1>
-    <p>ഇരിമ്പൻ തറവാടിന്റെ ചരിത്രവും പാരമ്പര്യവും വരും തലമുറകളിലേക്ക് കൈമാറാനുള്ള ഒരു സ്മാരകശ്രമം.</p>
+  <section class="page-hero">
+    <span class="eyebrow">About Us</span>
+    <h1 class="section-title">Family history presented with more dignity and structure.</h1>
+    <p class="section-sub">The page now balances historical context, public-source highlights, and committee leadership in a cleaner editorial layout that feels more trustworthy and easier to read.</p>
   </section>
 
-  <article class="history-card">
-    <div class="history-meta">Home · കുടുംബചരിത്രം</div>
-    <h2 class="history-section-title">ആമുഖം</h2>
+  <section class="history-grid">
+    <article class="history-card">
+      <div>
+        <div class="section-kicker">Historical Summary</div>
+        <h2 class="section-title" style="font-size:2.5rem;">Roots, movement, faith, and continuity</h2>
+      </div>
+      {% for section in history_sections %}
+      <section class="history-section">
+        <h3>{{ section.title }}</h3>
+        <p>{{ section.body }}</p>
+      </section>
+      {% endfor %}
+      <div class="history-signoff">
+        <strong>{{ history_signoff.name }}</strong>
+        <span>{{ history_signoff.role }}</span>
+        <span>{{ history_signoff.note }}</span>
+      </div>
+    </article>
 
-    <div class="history-body">
-      <p>ഇന്നലെകളിലെ വ്യക്തികള്‍ക്കും സംഭവങ്ങള്‍ക്കും ഇന്ന് ജീവന്‍ നല്കുക എന്ന ധര്‍മ്മമാണ് ചരിത്രഗ്രന്ഥങ്ങള്‍ക്ക് നിര്‍വഹിക്കാനുള്ളത്. പൂവത്തുശ്ശേരിയുടെ മണ്ണില്‍ ഉറങ്ങിക്കിടക്കുന്ന ഇരിമ്പന്‍ തറവാടിന് നൂറ്റാണ്ടിനും അപ്പുറമുള്ള ചരിത്രമുണ്ട്. കാലത്തിന്റെ യവനികനീക്കി അതിനെ അനാവരണം ചെയ്യുക എന്നത് വരും തലമുറയോട് ഇന്നത്തെ തലമുറ ചെയ്യേണ്ട ഒരു ധര്‍മ്മമാണ്. ഈധര്‍മ്മനിര്‍വ്വഹണമാണ് ഇരുമ്പന്‍ തറവാടിന്റെ ചരിത്രഗ്രന്ഥം പ്രസിദ്ധീകരിക്കുന്നതു വഴി ചെയ്യുന്നത്.</p>
-
-      <p>എറണാകുളം ജില്ലയിലെ ആലുവാ താലുക്ക് പാറക്കടവ് വില്ലേജില്‍ പൂവത്തുശ്ശേരിയിലും പരിസര പ്രദേശങ്ങളിലും പതിനെട്ടാം നൂറ്റാണ്ടിന്റെ അവസാനകാലഘട്ടങ്ങളില്‍ ഇരിമ്പന്‍ കുടുംബക്കാര്‍ താമസമുറപ്പിച്ചു.</p>
-
-      <p>കേരള സഭാ ചരിത്രത്തില്‍ വളരെ പ്രാധാന്യം വഹിക്കുന്ന, സുറിയാനിക്കാര്‍ വളരെ കാലം മുമ്പുതന്നെ ആലങ്ങാട്ട് കുടിയേറി പാര്‍ത്തിരുന്നതായി രേഖകള്‍ കാണിക്കുന്നു. ഫലഭൂയിഷ്ടതകൊണ്ടും, സമ്പല്‍സമൃദ്ധികൊണ്ടും ആലങ്ങാട് അനുഗ്രഹീതമായിരുന്നു. ഇവിടെ നിന്നും 18-ാം നൂറ്റാണ്ടിന്റെ അവസാന കാലങ്ങളില്‍ മൂഴിക്കുളം പള്ളി ഇടവകയില്‍ പെട്ട പാറക്കടവിലാണ് ഇരിമ്പന്‍ കുടുംബക്കാര്‍ ആദ്യമായി ആലങ്ങാട്ടുനിന്നും കുടിയേറിപാര്‍ത്തത്.</p>
-
-      <p>പൂര്‍വ്വികന്‍മാരെ പറ്റി വസ്തുനിഷ്ടമായ വിവരങ്ങള്‍ നല്‍കാന്‍ കഴിയുന്നവര്‍ നിലവിലുള്ള തലമുറയില്‍ വിരളമാണ്. വിവരങ്ങള്‍ തേടി പുറകോട്ടുപോകുമ്പോള്‍ പലപ്പോഴും വഴി അടഞ്ഞുപോകുന്നതായിട്ടാണ് അനുഭവപ്പെട്ടത്. കിട്ടിയ വിവരങ്ങള്‍ ഭാവി തലമുറയ്ക്ക് കൈമാറാന്‍ കഴിയുന്ന ഒരു സംവിധാനമുണ്ടാക്കാന്‍ സാധിച്ചിരുന്നില്ല. അതുകൊണ്ട് ഈ ജിജ്ഞാസ തലമുറയായി കൈമാറുകയാണ് പതിവ്. വിവരങ്ങള്‍ ശേഖരിക്കുന്നതില്‍ ഉണ്ടായ ബുദ്ധിമുട്ടുകള്‍ പ്രസിദ്ധീകരണത്തിന് കാലതാമസം വരുത്തിയിട്ടുണ്ട്. നമ്മുടെ പഴയ തലമുറയെ പറ്റി അറിയുന്നതിന് ഇളംതലമുറയ്ക്ക് വലിയ ആകാംക്ഷയുണ്ട്. പൂര്‍വ്വികരുടെ തൊഴില്‍, വിദ്യാഭ്യാസ നിലവാരം, അവരുടെ സംഭാവനകള്‍ എന്നിവ മനസ്സിലാക്കുന്നത് യുവതലമുറയുടെ അവകാശമായിട്ടാണ് ഞാന്‍ കണക്കാക്കുന്നത്. ഈ പുസ്തകം മേല്‍പറഞ്ഞ കാര്യങ്ങള്‍ക്ക് കുറച്ചെങ്കിലും ഉപകരിക്കും.</p>
-
-      <p>വരും തലമുറ ഈ വസ്തുതകള്‍ മനസ്സിലാക്കി കഴിയുന്ന വിവരങ്ങള്‍ കൂട്ടിച്ചേര്‍ത്ത് ഇനിയും പുനഃപ്രസിദ്ധീകരിക്കുമെന്ന് പ്രത്യാശിക്കുന്നു. വൈദിക സ്രേഷ്ടന്മാരെയും, വൈദികരേയും, സന്യസിനികളെയും നല്‍കിയിട്ടുള്ള കുടുംബമാണ് നമ്മുടേത്. വിദ്യാഭ്യാസനിലവാരമുള്ളവരെ മാത്രമെ മുന്‍കാലങ്ങളില്‍ ദൈവ സേവനത്തിന് വിളിക്കുമായിരുന്നുള്ളൂ. ഇന്ന് ബിരുദധാരികളും, പോസ്റ്റ് ഗ്രാജ്വേറ്റുകളും, പി. എച്ച്ഡി.ക്കാരും, ഡോക്ടര്‍മാരും, എഞ്ചിനിയര്‍മാരും ഇരിമ്പന്‍ കുടുംബത്തിലൂടെ രാജ്യസേവനം നിര്‍വ്വഹിക്കുന്നുണ്ട്. നെല്‍കൃഷിയായിരുന്നു ആദ്യകാലങ്ങളില്‍ കുടുംബത്തിന്റെ വരുമാന മാര്‍ഗ്ഗം. അതിനുശേഷം കച്ചവടം, വ്യവസായം, പ്ലാന്റേഷന്‍ തുടങ്ങിയ രംഗങ്ങളില്‍ പ്രവര്‍ത്തിച്ചു തുടങ്ങി.</p>
-
-      <p>ഈ കുടുംബത്തിലെ അനേകം അഭ്യസ്തവിദ്യര്‍ ഇന്‍ഡ്യയുടെ പ്രധാന പട്ടണങ്ങളിലും, യൂറോപ്പിലും, അമേരിക്കയിലും, കാനഡയിലും, പടിഞ്ഞാറന്‍ ഏഷ്യയിലും ജോലി നോക്കുന്നു. ചിലരെല്ലാം അതാതു രാജ്യങ്ങളില്‍ സ്ഥിരതാമസമാക്കിയിട്ടുണ്ട്. ഈ ചരിത്ര രചനകള്‍ക്ക് കുടുംബത്തിന്റെ എല്ലാവരുടെയും അകമഴിഞ്ഞ സഹകരണവും, പ്രോത്സാഹനവും ഉണ്ടായിരുന്നതില്‍ ദൈവത്തോടു നന്ദി പറയുന്നു. ഞാന്‍ ആഗ്രഹിച്ച വിധത്തില്‍ വിവരങ്ങള്‍ ശേഖരിക്കാന്‍ സാധിച്ചില്ല. മൂഴിക്കുളം പള്ളിയിലെയും, ആലങ്ങാട് പള്ളിയിലെയും മാമോദീസ രജിസ്റ്റര്‍, വിവാഹ രജിസ്റ്റര്‍, മരണ രജിസ്റ്റര്‍ എന്നിവ അപ്രാപ്യമായിരുന്നു. 1789 ല്‍ ടിപ്പുസുല്‍ത്താന്‍ ഈ രണ്ട് പള്ളികളും ഭാഗീകമായി നശിപ്പിച്ചെന്നാണ് പൂര്‍വ്വീകര്‍ പറയുന്നത്. വില്ലേജ് ഓഫീസില്‍ നിന്നോ, താലൂക്ക് ഓഫീസില്‍ നിന്നോ ആധികാരിക രേഖകളൊന്നും ലഭിച്ചിട്ടില്ല. ഈ കുറവുകള്‍ നികത്തിയാലെ ചരിത്ര രചന പൂര്‍ത്തിയാവുകയുള്ളൂ. ഈ ജോലിയിലേക്ക് ധാരാളം സമയം ചെലവഴിക്കാന്‍ സാധിക്കുന്നവര്‍ക്കേ മേല്‍പറഞ്ഞ ആധികാരിക രേഖകള്‍ കണ്ടുപിടിക്കാന്‍ സാധിക്കുകയുള്ളൂ.</p>
-
-      <p>പൂവ്വത്തുശ്ശേരിയുടെ ബഹുമുഖ വളര്‍ച്ചയ്ക്ക് ഇരിമ്പന്‍ കുടുംബക്കാര്‍ അത്യധ്വാനം ചെയ്തിട്ടുണ്ടെന്നുള്ളത് ഈ അവസരത്തില്‍ രേഖപ്പെടുത്തുകയും അതിന്റെ ഫലങ്ങള്‍ അനുഭവിക്കുന്ന ഈ തലമുറ പൂര്‍വ്വീകരായ നമ്മുടെ ഉള്ളവരായിരിക്കണമെന്ന് ആഗ്രഹിക്കുകയുമാണ്. ഈ ചരിത്ര രചനയുമായി ബന്ധപ്പെട്ട എല്ലാ ജോലികളിലും എന്നെ സഹായിച്ച നമ്മുടെ കുടുംബക്കാരോട് ഒരിക്കല്‍ കൂടി നന്ദി രേഖപ്പെടുത്തുവാന്‍ ഞാന്‍ ഈ സന്ദര്‍ഭം ഉപയോഗിക്കുന്നു.</p>
-
-      <p>ഒരു നാടിന്റെ വളര്‍ച്ചയ്‌ക്കൊപ്പം ഉയരുകയും, ആ ഉയര്‍ച്ചയ്ക്ക് നേതൃത്വം നല്‍കുകയും, സാമൂഹിക / സാംസ്‌കാരിക / രാഷ്ട്രീയ / ആദ്ധ്യാത്മിക / കാര്‍ഷിക / വ്യാപാര / വ്യാവസായിക / ശാസ്ത്ര / കലാ കായിക രംഗങ്ങളിലെല്ലാം അനേകം പ്രഗല്ഭരെ സംഭാവന ചെയ്യുവാന്‍ സാധിച്ചതില്‍ അഭിമാനം കൊള്ളുന്ന ഒരു കുടുംബത്തിന്റെ ചരിത്രം വായനക്കാരുടെ മുന്നിലേക്കും ചരിത്രാന്വേഷികളുടെ സവിധത്തിലേക്കും സവിനയം സമര്‍പ്പിക്കുകയാണ്.</p>
-
-      <p>ഈ പുസ്തകത്തില്‍ ചേര്‍ത്തിട്ടുള്ള ചാര്‍ട്ടു പരിശോധിച്ചാല്‍ എല്ലാ ശാഖകളും ഒരു കേന്ദ്രബിന്ദുവില്‍ത്തന്നെ ചെന്നെത്തും. അതായത്, ഐപ്പിന്റെ സന്തതി പരമ്പര ഏകദേശം 240 വര്‍ഷങ്ങള്‍ക്കപ്പുറം ആലങ്ങോട്ടുനിന്നു വന്ന ഒരു ഇരിമ്പന്‍ കാരണവരുടെ സന്തതി പരമ്പരയാണ്. ഇന്ന് പല കാരണങ്ങളാല്‍ നമ്മളില്‍ പലര്‍ക്കും ഉയര്‍ച്ചയും താഴ്ച്ചയും കാണുന്നുവെങ്കിലും ഈ ഉയര്‍ച്ച സ്ഥിരമായിട്ടുള്ളതല്ലെന്നും, ഈ താഴ്ച നിത്യദുരിതമായിട്ടു കണക്കാക്കേണ്ടതില്ലെന്നും നമ്മുടെ കുറച്ച് കാലത്തെ അനുഭവം വ്യക്തമാക്കുന്നു. ഈ സാഹോദര്യം നിലനിര്‍ത്തി പോകാന്‍ ദൈവം സഹായിക്കട്ടെ.</p>
-
-      <p>2023 ജനുവരി 26 വരെയുള്ള വിവരങ്ങളാണ് ഈ പുസ്തകത്തില്‍ ഉള്‍ക്കൊള്ളിച്ചിരിക്കുന്നത്.</p>
-    </div>
-
-    <div class="history-signoff">
-      <strong>ഇരിമ്പന്‍ ജോസഫ് ബാബു</strong>
-      <span class="role">പ്രസിഡന്റ്‌</span>
-      <span class="role">ഇരിമ്പന്‍ കുടുംബയോഗം</span>
-    </div>
-  </article>
-
-  <section class="committee-wrap" id="committee-members">
-    <h2 class="history-section-title" style="margin-bottom:1.25rem;">Committee Members</h2>
-    <div class="committee-grid">
-      <article class="committee-card">
-        <div class="committee-photo">
-          <img src="{% static 'tree/committee/babu-joseph.jpg' %}" alt="Babu Joseph">
-        </div>
-        <div class="committee-body">
-          <h3>Babu Joseph</h3>
-          <div class="committee-role">Chairman</div>
-        </div>
-      </article>
-
-      <article class="committee-card">
-        <div class="committee-photo">
-          <img src="{% static 'tree/committee/baby-j-irim.png' %}" alt="Baby J Irim">
-        </div>
-        <div class="committee-body">
-          <h3>Baby J Irim</h3>
-          <div class="committee-role">Vice Chairman</div>
-        </div>
-      </article>
-
-      <article class="committee-card">
-        <div class="committee-photo">
-          <img src="{% static 'tree/committee/george.jpg' %}" alt="George">
-        </div>
-        <div class="committee-body">
-          <h3>George</h3>
-          <div class="committee-role">Board Member</div>
-        </div>
-      </article>
-
-      <article class="committee-card">
-        <div class="committee-photo">
-          <img src="{% static 'tree/committee/i-a-jose.png' %}" alt="I A Jose">
-        </div>
-        <div class="committee-body">
-          <h3>I A Jose</h3>
-          <div class="committee-role">Board Member</div>
-        </div>
-      </article>
-    </div>
+    <aside class="source-card">
+      <span class="eyebrow">Highlights</span>
+      <h2>What this section brings together</h2>
+      <ul>
+        <li>Family-history content adapted into a clearer reading experience for visitors.</li>
+        <li>Mentor recognition and clergy visibility connected to the broader family story.</li>
+        <li>Committee details presented as part of the living structure of the organization.</li>
+        <li>Contact and public-source references kept visible without cluttering the narrative.</li>
+      </ul>
+      <p style="margin-top:1rem;">Public source: <a href="https://www.irimpanfamily.com/" target="_blank" rel="noopener noreferrer">irimpanfamily.com</a></p>
+    </aside>
   </section>
 </div>
 {% endblock %}

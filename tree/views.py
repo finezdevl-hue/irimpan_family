@@ -369,29 +369,15 @@ def committee_members(request):
 
 
 def family_page(request):
-    people = list(Person.objects.select_related('family').all())
-    generation_map = _generation_map(people)
-    _apply_generations(people, generation_map)
-    households = _build_households(people)
-
-    families = Family.objects.filter(is_active=True).order_by('name').prefetch_related(
-        Prefetch('members', queryset=Person.objects.order_by('last_name', 'first_name'))
-    )
+    families = Family.objects.filter(is_active=True).order_by('name')
     family_cards = []
 
     for family in families:
-        family_households = [
-            house for house in households
-            if house['family_record'] and house['family_record'].pk == family.pk
-        ]
-        main_household = next((house for house in family_households if not house['is_separate_home']), None)
-        separate_households = [house for house in family_households if house['is_separate_home']]
+        member_count = family.members.count()
         family_cards.append({
             'family': family,
             'photo_url': family.photo.url if family.photo else None,
-            'main_household': main_household,
-            'separate_households': separate_households,
-            'household_count': len(family_households),
+            'member_count': member_count,
         })
     return render(request, 'tree/family.html', {
         'family_cards': family_cards,

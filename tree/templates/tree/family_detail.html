@@ -120,7 +120,11 @@
 {% block content %}
 <div class="family-detail-wrap">
   <div>
+    {% if house.family_record %}
+    <a href="{% url 'family_record_detail' house.family_record.pk %}" style="color:var(--text-dim);text-decoration:none;font-size:0.92rem;">&larr; Back to {{ house.family_record.name }} Family</a>
+    {% else %}
     <a href="{% url 'family_page' %}" style="color:var(--text-dim);text-decoration:none;font-size:0.92rem;">&larr; Back to Family Page</a>
+    {% endif %}
   </div>
 
   <div class="family-detail-grid">
@@ -163,9 +167,11 @@
       <div class="member-grid">
         {% for row in house.member_rows %}
         <article class="member-tile">
-          {% if row.person.photo %}
-          <img src="{{ row.person.photo.url }}" alt="{{ row.person.full_name }}" class="photo-preview">
+          {% with photo_url=row.person.get_photo_url %}
+          {% if photo_url %}
+          <img src="{{ photo_url }}" alt="{{ row.person.full_name }}" class="photo-preview">
           {% endif %}
+          {% endwith %}
           <a href="{{ row.person.get_absolute_url }}">{{ row.person.full_name }}</a>
           <p>{{ row.role }}</p>
           {% if row.person.birth_date or row.person.birth_place %}

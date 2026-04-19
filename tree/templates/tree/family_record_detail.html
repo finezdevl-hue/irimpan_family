@@ -144,6 +144,31 @@
     color: var(--female);
   }
 
+  .guardian-highlight {
+    background: rgba(127, 85, 57, 0.08);
+    border: 1px solid rgba(127, 85, 57, 0.2);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .guardian-highlight h4 {
+    color: var(--brand-strong);
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .guardian-highlight p {
+    color: var(--text);
+    margin: 0;
+  }
+
+  .household-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+
   .member-list {
     display: flex;
     flex-wrap: wrap;
@@ -252,6 +277,16 @@
           </div>
           <span class="household-tag">Main</span>
         </div>
+        {% for row in main_household.member_rows %}
+          {% if row.role == 'Head' %}
+          <div class="guardian-highlight">
+            <h4>Family Guardian: {{ row.person.full_name }}</h4>
+            {% if row.person.bio %}
+            <p>{{ row.person.bio }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
         <div class="member-list">
           {% for row in main_household.member_rows %}
           <a href="{{ row.person.get_absolute_url }}" class="member-chip">
@@ -273,6 +308,16 @@
           </div>
           <span class="household-tag separate">Separate</span>
         </div>
+        {% for row in house.member_rows %}
+          {% if row.role == 'Head' %}
+          <div class="guardian-highlight">
+            <h4>Family Guardian: {{ row.person.full_name }}</h4>
+            {% if row.person.bio %}
+            <p>{{ row.person.bio }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
         <div class="member-list">
           {% for row in house.member_rows %}
           <a href="{{ row.person.get_absolute_url }}" class="member-chip">
@@ -281,6 +326,9 @@
             <span class="member-chip-role">{% if row.role == 'Head' %}Head{% elif row.role == 'Spouse' %}Spouse{% else %}Child{% endif %}</span>
           </a>
           {% endfor %}
+        </div>
+        <div class="household-actions">
+          <a href="{% url 'family_detail' house.guardian.pk %}" class="btn btn-secondary">View More</a>
         </div>
       </article>
       {% empty %}

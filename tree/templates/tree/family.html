@@ -1,5 +1,5 @@
 {% extends "tree/base.html" %}
-{% block title %}Family - Irimpan Kudumba Yogam{% endblock %}
+{% block title %}Families - Irimpan Kudumba Yogam{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -8,314 +8,131 @@
     gap: 1.4rem;
   }
 
-  .family-summary-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
-    gap: 1rem;
-  }
-
-  .family-intro,
-  .family-highlight {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(14px);
-  }
-
-  .family-intro {
-    padding: 1.4rem;
-    display: grid;
-    gap: 1rem;
-  }
-
-  .family-intro h2 {
-    color: var(--brand-strong);
-    font-size: 2.3rem;
-  }
-
-  .family-points {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.8rem;
-  }
-
-  .family-point {
-    padding: 0.95rem 1rem;
-    border-radius: 20px;
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,0.5);
-  }
-
-  .family-point strong {
-    display: block;
-    margin-bottom: 0.25rem;
-    color: var(--brand-strong);
-  }
-
-  .family-highlight {
-    padding: 1.35rem;
-    display: grid;
-    align-content: space-between;
-    gap: 1rem;
-    background:
-      radial-gradient(circle at top right, rgba(216, 236, 233, 0.85), transparent 36%),
-      linear-gradient(135deg, rgba(255,255,255,0.72), rgba(249, 241, 230, 0.92));
-  }
-
-  .family-highlight h3 {
-    color: var(--brand-strong);
-    font-size: 2rem;
-  }
-
-  .highlight-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.85rem 0;
-    border-top: 1px solid var(--line);
-  }
-
-  .highlight-label {
-    color: var(--text-dim);
-    font-size: 0.8rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  .highlight-value {
-    color: var(--brand-strong);
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 2rem;
-    line-height: 1;
-  }
-
   .family-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1rem;
   }
 
   .family-card {
-    overflow: hidden;
+    padding: 1.3rem;
     border-radius: 30px;
     border: 1px solid var(--border);
     background: var(--surface);
     box-shadow: var(--shadow);
     backdrop-filter: blur(14px);
-  }
-
-  .family-summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    gap: 1rem;
-    padding: 1.25rem;
-    cursor: pointer;
-    list-style: none;
-    background:
-      radial-gradient(circle at top right, rgba(216, 236, 233, 0.72), transparent 34%),
-      linear-gradient(135deg, rgba(255,255,255,0.58), rgba(249, 241, 230, 0.92));
-  }
-
-  .family-summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .family-summary-main {
     display: grid;
-    gap: 0.7rem;
-    min-width: 0;
+    gap: 1rem;
   }
 
-  .family-card-photo-wrap {
+  .family-card-head {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .family-photo-wrap {
     width: 100%;
-    max-width: 120px;
-    border-radius: 20px;
+    max-width: 140px;
+    border-radius: 22px;
     overflow: hidden;
     border: 1px solid var(--border);
   }
 
-  .family-card-thumb {
-    width: 100%;
-    height: 100%;
+  .family-photo {
     display: block;
+    width: 100%;
+    height: 140px;
     object-fit: cover;
   }
 
   .family-title-row {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    justify-content: space-between;
+    gap: 0.8rem;
     flex-wrap: wrap;
   }
 
-  .family-title-row h3 {
+  .family-title-row h2 {
     color: var(--brand-strong);
     font-size: 2rem;
   }
 
-  .family-pill,
   .family-count {
     display: inline-flex;
     align-items: center;
-    padding: 0.42rem 0.78rem;
+    padding: 0.45rem 0.78rem;
     border-radius: 999px;
     border: 1px solid var(--border);
-    font-size: 0.72rem;
+    background: rgba(255,255,255,0.72);
+    color: var(--brand);
+    font-size: 0.74rem;
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
-  .family-count {
-    background: rgba(255,255,255,0.72);
-    color: var(--brand);
-  }
-
-  .family-pill {
-    background: rgba(255,255,255,0.62);
-    color: var(--accent);
-  }
-
-  .family-card[open] .family-pill {
-    background: rgba(15, 118, 110, 0.1);
-  }
-
-  .family-sub {
+  .family-bio {
     color: var(--text-dim);
   }
 
-  .family-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-  }
-  .family-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.7rem;
-    margin-top: 0.15rem;
-  }
-
-  .meta-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.4rem 0.72rem;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.55);
-    border: 1px solid var(--line);
-    color: var(--text-dim);
-    font-size: 0.74rem;
-    font-weight: 700;
-  }
-
-  .family-details {
+  .family-members {
     display: grid;
-    gap: 0.95rem;
-    padding: 0 1.25rem 1.25rem;
+    gap: 0.7rem;
   }
 
-  .house-block {
-    padding: 1rem;
-    border-radius: 24px;
+  .member-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 0.9rem;
+    border-radius: 20px;
     border: 1px solid var(--line);
-    background: rgba(255,255,255,0.54);
-  }
-
-  .house-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    gap: 1rem;
-    margin-bottom: 0.9rem;
-  }
-
-  .house-head h4 {
-    color: var(--brand-strong);
-    font-size: 1.55rem;
-    margin-bottom: 0.2rem;
-  }
-
-  .house-note {
-    color: var(--text-dim);
-    font-size: 0.9rem;
-  }
-
-  .house-tag {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.38rem 0.72rem;
-    border-radius: 999px;
-    background: rgba(15, 118, 110, 0.08);
-    color: var(--accent);
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .house-tag.separate {
-    background: rgba(160, 80, 120, 0.09);
-    color: var(--female);
-  }
-
-  .house-members {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem;
-  }
-
-  .house-member {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    padding: 0.72rem 0.85rem;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.78);
+    background: rgba(255,255,255,0.6);
   }
 
   .member-badge {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: rgba(127, 85, 57, 0.12);
     color: var(--brand-strong);
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     font-weight: 800;
     flex: 0 0 auto;
   }
 
-  .house-member .name {
+  .member-copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .member-name {
     color: var(--text);
     font-weight: 700;
   }
 
-  .member-role {
+  .member-meta {
     color: var(--text-dim);
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: 0.84rem;
   }
 
   .family-empty {
+    padding: 0.95rem 1rem;
+    border-radius: 20px;
+    border: 1px dashed var(--border);
     color: var(--text-dim);
-    padding-top: 0.25rem;
+    background: rgba(255,255,255,0.45);
   }
 
-  @media (max-width: 980px) {
-    .family-summary-grid,
-    .family-points {
-      grid-template-columns: 1fr;
-    }
+  .family-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   @media (max-width: 640px) {
@@ -329,126 +146,32 @@
 {% block content %}
 <div class="family-page">
   <section class="page-hero">
-    <span class="eyebrow">Family Homes</span>
-    <h1 class="section-title">A cleaner family directory with easier household browsing.</h1>
-    <p class="section-sub">Each family record is presented like a proper household profile, making it easier to understand the main home, separate homes, and who belongs where.</p>
-  </section>
-
-  <section class="family-summary-grid">
-    <article class="family-intro">
-      <div>
-        <div class="section-kicker">How To Read This Page</div>
-        <h2>Browse homes family by family, without the clutter.</h2>
-      </div>
-      <div class="family-points">
-        <div class="family-point">
-          <strong>Main Family Home</strong>
-          <p>The primary household is shown first for each family record.</p>
-        </div>
-        <div class="family-point">
-          <strong>Separate Homes</strong>
-          <p>Members living separately are grouped as their own linked households.</p>
-        </div>
-      </div>
-    </article>
-
-    <aside class="family-highlight">
-      <div>
-        <span class="eyebrow">Overview</span>
-        <h3>Family directory at a glance.</h3>
-      </div>
-      <div>
-        <div class="highlight-row">
-          <span class="highlight-label">Family Records</span>
-          <span class="highlight-value">{{ total_families }}</span>
-        </div>
-        <div class="highlight-row">
-          <span class="highlight-label">Display Style</span>
-          <span class="highlight-label" style="color:var(--accent);">Expandable households</span>
-        </div>
-      </div>
-      <div style="margin-top:1rem; display:flex; gap:0.75rem; flex-wrap:wrap;">
-        <a href="{% url 'family_list' %}" class="btn btn-secondary">Family List</a>
-        <a href="{% url 'separate_homes' %}" class="btn btn-secondary">Separate Homes</a>
-      </div>
-    </aside>
+    <span class="eyebrow">Families</span>
+    <h1 class="section-title">All families in one simple list.</h1>
+    <p class="section-sub">Browse through all family records. Click "View More" to see family members and household details.</p>
   </section>
 
   {% if family_cards %}
   <section class="family-grid">
     {% for card in family_cards %}
-    <details class="family-card">
-      <summary class="family-summary">
-        <div class="family-summary-main">
-          {% if card.photo_url %}
-          <div class="family-card-photo-wrap">
-            <img src="{{ card.photo_url }}" alt="{{ card.family.name }} photo" class="family-card-thumb">
-          </div>
-          {% endif %}
-          <div class="family-title-row">
-            <h3>{{ card.family.name }} &amp; Family</h3>
-            <span class="family-count">{{ card.household_count }} home{% if card.household_count != 1 %}s{% endif %}</span>
-          </div>
-          <div class="family-sub">Open this card to view the main household and any separate homes connected to this family record.</div>
-          <div class="family-meta">
-            <span class="meta-chip">{% if card.main_household %}Main home available{% else %}No main home listed{% endif %}</span>
-            <span class="meta-chip">{{ card.separate_households|length }} separate home{% if card.separate_households|length != 1 %}s{% endif %}</span>
-          </div>
-          <div class="family-actions">
-            <a href="{% url 'family_record_detail' card.family.pk %}" class="btn btn-primary">Open Family Page</a>
-          </div>
-        </div>
-        <span class="family-pill">Expand</span>
-      </summary>
-
-      <div class="family-details">
-        {% if card.main_household %}
-        <div class="house-block">
-          <div class="house-head">
-            <div>
-              <h4>Main Family Home</h4>
-              <div class="house-note">Primary household with the central parent structure and resident family members.</div>
-            </div>
-            <span class="house-tag">Main</span>
-          </div>
-          <div class="house-members">
-            {% for row in card.main_household.member_rows %}
-            <div class="house-member">
-              <span class="member-badge">{{ row.person.full_name|slice:":1"|upper }}</span>
-              <span class="name">{{ row.person.full_name }}</span>
-              <span class="member-role">{% if row.role == 'Head' %}Head{% elif row.role == 'Spouse' %}Spouse{% else %}Child{% endif %}</span>
-            </div>
-            {% endfor %}
-          </div>
+    <article class="family-card">
+      <div class="family-card-head">
+        {% if card.photo_url %}
+        <div class="family-photo-wrap">
+          <img src="{{ card.photo_url }}" alt="{{ card.family.name }} photo" class="family-photo">
         </div>
         {% endif %}
-
-        {% for house in card.separate_households %}
-        <div class="house-block">
-          <div class="house-head">
-            <div>
-              <h4>{{ house.display_name }}</h4>
-              <div class="house-note">Separate household connected to this family record.</div>
-            </div>
-            <span class="house-tag separate">Separate</span>
-          </div>
-          <div class="house-members">
-            {% for row in house.member_rows %}
-            <div class="house-member">
-              <span class="member-badge">{{ row.person.full_name|slice:":1"|upper }}</span>
-              <span class="name">{{ row.person.full_name }}</span>
-              <span class="member-role">{% if row.role == 'Head' %}Head{% elif row.role == 'Spouse' %}Spouse{% else %}Child{% endif %}</span>
-            </div>
-            {% endfor %}
-          </div>
+        <div class="family-title-row">
+          <h2>{{ card.family.name }}</h2>
+          <span class="family-count">{{ card.member_count }} member{% if card.member_count != 1 %}s{% endif %}</span>
         </div>
-        {% empty %}
-        {% if not card.main_household %}
-        <div class="family-empty">No household information found for this family yet.</div>
-        {% endif %}
-        {% endfor %}
+        <p class="family-bio">{{ card.family.bio|default:"Click View More to see family members and details." }}</p>
       </div>
-    </details>
+
+      <div class="family-actions">
+        <a href="{% url 'family_record_detail' card.family.pk %}" class="btn btn-secondary">View More</a>
+      </div>
+    </article>
     {% endfor %}
   </section>
   {% else %}

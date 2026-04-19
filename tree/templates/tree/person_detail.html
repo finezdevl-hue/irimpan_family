@@ -168,8 +168,11 @@
   <div>
     <div class="profile-card">
       <div class="profile-avatar">
-        {% if person.photo %}
-          <img src="{{ person.photo.url }}" alt="{{ person.full_name }}">
+        {% with photo_url=person.get_photo_url %}
+        {% if photo_url %}
+          <img src="{{ photo_url }}" alt="{{ person.full_name }}">
+        {% endif %}
+        {% endwith %}
         {% elif person.gender == 'M' %}
           M
         {% elif person.gender == 'F' %}

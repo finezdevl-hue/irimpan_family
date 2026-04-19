@@ -81,6 +81,17 @@ class Person(models.Model):
     def full_name(self):
         return f"{self.first_name} {self.last_name}".strip()
 
+    def get_photo_url(self):
+        """Return photo URL or default gender photo if no photo."""
+        if self.photo:
+            return self.photo.url
+        # Use default gender photos for members without photos
+        if self.gender == 'M':
+            return '/media/photos/boy.png'
+        elif self.gender == 'F':
+            return '/media/photos/girl.png'
+        return None
+
     @property
     def is_alive(self):
         return self.death_date is None

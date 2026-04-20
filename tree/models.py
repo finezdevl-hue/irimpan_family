@@ -87,9 +87,9 @@ class Person(models.Model):
             return self.photo.url
         # Use default gender photos for members without photos
         if self.gender == 'M':
-            return '/media/photos/boy.png'
+            return '/media/photos/men.png'
         elif self.gender == 'F':
-            return '/media/photos/girl.png'
+            return '/media/photos/women.png'
         return None
 
     @property
@@ -149,7 +149,7 @@ class Person(models.Model):
             'current_address': self.current_address,
             'living_separately': self.living_separately,
             'bio': self.bio,
-            'photo': self.photo.url if self.photo else None,
+            'photo': self.get_photo_url(),
             'father_id': self.father_id,
             'mother_id': self.mother_id,
             'spouse_id': self.spouse_id,

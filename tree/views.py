@@ -513,6 +513,10 @@ def gallery(request):
             'event_date': item.event_date,
             'photos': [item],
         })
+    for group in grouped_gallery:
+        group['cover_photo'] = group['photos'][0] if group['photos'] else None
+        group['preview_photos'] = group['photos'][:4]
+        group['photo_count'] = len(group['photos'])
     return render(request, 'tree/gallery.html', {
         'gallery_items': gallery_items,
         'grouped_gallery': grouped_gallery,

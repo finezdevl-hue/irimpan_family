@@ -275,14 +275,22 @@
       <div class="rel-grid">
         {% if person.father %}
         <a href="{{ person.father.get_absolute_url }}" class="rel-card">
-          <div class="rel-avatar">{% if person.father.photo %}<img src="{{ person.father.photo.url }}" alt="{{ person.father.full_name }}">{% else %}M{% endif %}</div>
+          <div class="rel-avatar">
+            {% with photo_url=person.father.get_photo_url %}
+            {% if photo_url %}<img src="{{ photo_url }}" alt="{{ person.father.full_name }}">{% else %}M{% endif %}
+            {% endwith %}
+          </div>
           <div class="rel-name">{{ person.father.full_name }}</div>
           <div class="rel-meta">Father</div>
         </a>
         {% endif %}
         {% if person.mother %}
         <a href="{{ person.mother.get_absolute_url }}" class="rel-card">
-          <div class="rel-avatar">{% if person.mother.photo %}<img src="{{ person.mother.photo.url }}" alt="{{ person.mother.full_name }}">{% else %}F{% endif %}</div>
+          <div class="rel-avatar">
+            {% with photo_url=person.mother.get_photo_url %}
+            {% if photo_url %}<img src="{{ photo_url }}" alt="{{ person.mother.full_name }}">{% else %}F{% endif %}
+            {% endwith %}
+          </div>
           <div class="rel-name">{{ person.mother.full_name }}</div>
           <div class="rel-meta">Mother</div>
         </a>
@@ -298,8 +306,9 @@
         {% for spouse in spouses %}
         <a href="{{ spouse.get_absolute_url }}" class="rel-card">
           <div class="rel-avatar">
-            {% if spouse.photo %}
-              <img src="{{ spouse.photo.url }}" alt="{{ spouse.full_name }}">
+            {% with photo_url=spouse.get_photo_url %}
+            {% if photo_url %}
+              <img src="{{ photo_url }}" alt="{{ spouse.full_name }}">
             {% elif spouse.gender == 'M' %}
               M
             {% elif spouse.gender == 'F' %}
@@ -307,6 +316,7 @@
             {% else %}
               P
             {% endif %}
+            {% endwith %}
           </div>
           <div class="rel-name">{{ spouse.full_name }}</div>
           <div class="rel-meta">Spouse</div>
@@ -323,8 +333,9 @@
         {% for child in children %}
         <a href="{{ child.get_absolute_url }}" class="rel-card">
           <div class="rel-avatar">
-            {% if child.photo %}
-              <img src="{{ child.photo.url }}" alt="{{ child.full_name }}">
+            {% with photo_url=child.get_photo_url %}
+            {% if photo_url %}
+              <img src="{{ photo_url }}" alt="{{ child.full_name }}">
             {% elif child.gender == 'M' %}
               M
             {% elif child.gender == 'F' %}
@@ -332,6 +343,7 @@
             {% else %}
               P
             {% endif %}
+            {% endwith %}
           </div>
           <div class="rel-name">{{ child.full_name }}</div>
           <div class="rel-meta">{% if child.birth_date %}b. {{ child.birth_date.year }}{% endif %}</div>
@@ -348,8 +360,9 @@
         {% for sib in siblings %}
         <a href="{{ sib.get_absolute_url }}" class="rel-card">
           <div class="rel-avatar">
-            {% if sib.photo %}
-              <img src="{{ sib.photo.url }}" alt="{{ sib.full_name }}">
+            {% with photo_url=sib.get_photo_url %}
+            {% if photo_url %}
+              <img src="{{ photo_url }}" alt="{{ sib.full_name }}">
             {% elif sib.gender == 'M' %}
               M
             {% elif sib.gender == 'F' %}
@@ -357,6 +370,7 @@
             {% else %}
               P
             {% endif %}
+            {% endwith %}
           </div>
           <div class="rel-name">{{ sib.full_name }}</div>
           <div class="rel-meta">{% if sib.birth_date %}b. {{ sib.birth_date.year }}{% endif %}</div>

@@ -3,61 +3,179 @@
 
 {% block extra_css %}
 <style>
-  .gallery-page { display: grid; gap: 1.4rem; }
-  .album-grid {
+  .gallery-page {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
-    gap: 1rem;
-    justify-content: start;
+    gap: 1.8rem;
   }
-  .album-card {
+  .gallery-hero {
+    position: relative;
     overflow: hidden;
-    border-radius: 28px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(14px);
+    padding: clamp(1.5rem, 4vw, 2.6rem);
+    border-radius: 34px;
+    border: 1px solid rgba(122, 92, 45, 0.16);
+    background:
+      radial-gradient(circle at top right, rgba(185, 146, 74, 0.16), transparent 36%),
+      linear-gradient(135deg, rgba(255, 250, 240, 0.96), rgba(249, 242, 229, 0.92));
+    box-shadow: 0 24px 48px rgba(77, 56, 28, 0.08);
   }
-  .album-cover {
-    aspect-ratio: 1.35 / 1;
-    background: var(--surface-soft);
+  .gallery-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto -10% -35% auto;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(145, 107, 45, 0.08);
+    filter: blur(8px);
+  }
+  .gallery-eyebrow {
+    display: inline-flex;
+    margin-bottom: 0.8rem;
+    padding: 0.42rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(121, 86, 34, 0.1);
+    color: #7a5c2d;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .gallery-hero h1 {
+    margin: 0 0 0.8rem;
+    max-width: 12ch;
+    color: #4f3413;
+    font-size: clamp(2.2rem, 4vw, 3.8rem);
+    line-height: 1.02;
+  }
+  .gallery-hero p {
+    max-width: 62ch;
+    margin: 0;
+    color: #6d5432;
+    font-size: 1rem;
+  }
+  .album-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.3rem;
-    padding: 0.35rem;
+    gap: 1.5rem;
   }
-  .album-cover img {
+  .album-section {
+    overflow: hidden;
+    border-radius: 30px;
+    border: 1px solid var(--border);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 245, 240, 0.98));
+    box-shadow: var(--shadow);
+  }
+  .album-header {
+    display: grid;
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+    gap: 1.2rem;
+    padding: 1.2rem;
+    align-items: stretch;
+  }
+  .album-thumbnail {
+    position: relative;
+    min-height: 240px;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #e8ddcb;
+  }
+  .album-thumbnail img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    border-radius: 16px;
   }
-  .album-body { padding: 1.15rem; }
-  .album-title { color: var(--brand-strong); font-size: 2rem; margin-bottom: 0.25rem; }
-  .album-date { color: var(--text-dim); margin-bottom: 0.6rem; }
-  .album-count {
+  .album-thumbnail-badge {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
     display: inline-flex;
-    width: fit-content;
-    padding: 0.34rem 0.72rem;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.48rem 0.85rem;
     border-radius: 999px;
-    background: rgba(15, 118, 110, 0.08);
-    color: var(--accent);
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
+    background: rgba(43, 28, 12, 0.72);
+    color: #fff7ea;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+  .album-summary {
+    display: grid;
+    gap: 0.9rem;
+    padding: 0.4rem 0;
+    align-content: center;
+  }
+  .album-kicker {
+    color: #9a7a48;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .album-title {
+    margin: 0;
+    color: #4b3112;
+    font-size: clamp(1.8rem, 3vw, 2.7rem);
+    line-height: 1.05;
+  }
+  .album-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+  .album-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(122, 92, 45, 0.09);
+    color: #775425;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .album-copy {
+    max-width: 58ch;
+    margin: 0;
+    color: var(--text-dim);
+  }
+  .album-preview-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .album-preview-strip img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 18px;
+    display: block;
+    border: 1px solid rgba(122, 92, 45, 0.14);
   }
   .empty-gallery {
     text-align: center;
-    padding: 2.25rem 1.2rem;
-    border-radius: 28px;
+    padding: 2.6rem 1.2rem;
+    border-radius: 30px;
     border: 1px dashed var(--border);
-    background: rgba(255,255,255,0.45);
+    background: rgba(255, 255, 255, 0.62);
+  }
+  @media (max-width: 900px) {
+    .album-header {
+      grid-template-columns: 1fr;
+    }
+    .album-preview-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
   @media (max-width: 640px) {
-    .album-grid {
-      grid-template-columns: minmax(0, 1fr);
+    .gallery-hero h1 {
+      max-width: none;
+    }
+    .album-header {
+      padding-left: 0.95rem;
+      padding-right: 0.95rem;
     }
   }
 </style>
@@ -65,34 +183,47 @@
 
 {% block content %}
 <div class="gallery-page">
-  <section class="page-hero">
-    <span class="eyebrow">Gallery</span>
-    <h1 class="section-title">Photo albums now feel curated instead of crowded.</h1>
-    <p class="section-sub">Event collections are presented as clean gallery covers with a warmer editorial tone, helping the archive feel more premium and easier to browse.</p>
+  <section class="gallery-hero">
+    <span class="gallery-eyebrow">Family Albums</span>
+    <h1>Moments arranged like a real photo archive.</h1>
+    <p>Each event now appears as its own album with a clear name, cover thumbnail, date, and photo count for quick browsing.</p>
   </section>
+
   {% if grouped_gallery %}
-  <div class="album-grid">
+  <section class="album-list">
     {% for group in grouped_gallery %}
-    <article class="album-card">
-      <div class="album-cover">
-        {% for photo in group.photos|slice:":3" %}
-        <img src="{{ photo.image.url }}" alt="{{ group.event_name }}">
-        {% endfor %}
-      </div>
-      <div class="album-body">
-        <div class="album-title">{{ group.event_name }}</div>
-        {% if group.event_date %}
-        <div class="album-date">{{ group.event_date|date:"F d, Y" }}</div>
-        {% endif %}
-        <span class="album-count">{{ group.photos|length }} Photo{{ group.photos|length|pluralize }}</span>
+    <article class="album-section">
+      <div class="album-header">
+        <div class="album-thumbnail">
+          {% if group.cover_photo %}
+          <img src="{{ group.cover_photo.image.url }}" alt="{{ group.event_name }} thumbnail">
+          {% endif %}
+          <div class="album-thumbnail-badge">{{ group.photo_count }} Photo{{ group.photo_count|pluralize }}</div>
+        </div>
+        <div class="album-summary">
+          <div class="album-kicker">Album</div>
+          <h2 class="album-title">{{ group.event_name }}</h2>
+          <div class="album-meta">
+            {% if group.event_date %}
+            <span class="album-pill">{{ group.event_date|date:"F d, Y" }}</span>
+            {% endif %}
+            <span class="album-pill">Thumbnail from album cover</span>
+          </div>
+          <p class="album-copy">This album card highlights {{ group.event_name }} with its main thumbnail and a quick preview of the collection.</p>
+          <div class="album-preview-strip">
+            {% for photo in group.preview_photos %}
+            <img src="{{ photo.image.url }}" alt="{{ group.event_name }} preview {{ forloop.counter }}">
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </article>
     {% endfor %}
-  </div>
+  </section>
   {% else %}
   <article class="empty-gallery">
-    <h3 style="color:var(--brand-strong);font-size:2rem;margin-bottom:0.4rem;">No event photos yet</h3>
-    <p>Upload completed event photos from the admin panel to build the gallery.</p>
+    <h3 style="color:var(--brand-strong);font-size:2rem;margin-bottom:0.4rem;">No albums yet</h3>
+    <p>Upload gallery photos from the admin panel and they will appear here as event albums with thumbnails.</p>
   </article>
   {% endif %}
 </div>

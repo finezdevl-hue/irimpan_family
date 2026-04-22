@@ -32,6 +32,11 @@
     line-height: 1.35;
     margin: 0;
   }
+  .clergy-meta {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    margin-top: 0.45rem;
+  }
   .clergy-empty {
     background: var(--surface);
     border: 1px dashed var(--border);
@@ -45,7 +50,7 @@
 {% block content %}
 <section class="hero-band">
   <h1 class="section-title">Priests and Nuns</h1>
-  <p class="section-sub">Browse the priests and nuns added by the admin with their names and photos.</p>
+  <p class="section-sub">Browse the priests and nuns added by the admin with their names, ordination day, and photos.</p>
 </section>
 
 <section class="clergy-grid">
@@ -56,6 +61,9 @@
     {% endif %}
     <div class="clergy-body">
       <h2 class="clergy-name">{{ person.name }}</h2>
+      {% if person.ordination_day %}
+      <p class="clergy-meta">Ordination Day: {{ person.ordination_day|date:"F j, Y" }}</p>
+      {% endif %}
     </div>
   </article>
   {% empty %}

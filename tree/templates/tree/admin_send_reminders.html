@@ -1,0 +1,133 @@
+{% extends "tree/admin_base.html" %}
+{% block title %}Family Reminders{% endblock %}
+
+{% block admin_content %}
+<div class="admin-head">
+  <div>
+    <h1 class="section-title">Family Reminders</h1>
+    <p>Preview upcoming birthdays, death anniversaries, wedding anniversaries, and ordination days through {{ end_date|date:"F j, Y" }}.</p>
+  </div>
+</div>
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="message" style="margin-bottom:1rem;">{{ msg }}</div>
+  {% endfor %}
+{% endif %}
+
+<!-- Upcoming Events Preview -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2 class="section-title" style="margin-bottom:0.8rem;">Upcoming Events (through {{ end_date|date:"F j, Y" }})</h2>
+
+  {% if upcoming %}
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Person</th>
+          <th>Date</th>
+          <th>Reminder</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in upcoming %}
+        <tr>
+          <td>
+            {% if event.type == "Birthday" %}
+              Birthday
+            {% elif event.type == "Death Anniversary" %}
+              Death Anniversary
+            {% elif event.type == "Wedding Anniversary" %}
+              Wedding Anniversary
+            {% else %}
+              Ordination Day
+            {% endif %}
+          </td>
+          <td>
+            {% if event.type == "Ordination Day" %}
+              {{ event.person.name }}
+            {% else %}
+              {{ event.person.full_name }}
+            {% endif %}
+          </td>
+          <td>{{ event.date|date:"F j, Y" }}</td>
+          <td>
+            <span style="background:var(--accent);color:#fff;padding:2px 10px;border-radius:20px;font-size:0.82rem;">
+              in {{ event.label }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="post" style="margin-top:1.2rem;">
+    {% csrf_token %}
+    <div class="admin-actions">
+      <button type="submit" class="btn btn-primary">
+        Send WhatsApp Reminders Now
+      </button>
+    </div>
+  </form>
+
+  {% else %}
+  <p class="muted" style="padding:1rem 0;">
+    No birthdays, death anniversaries, wedding anniversaries, or ordination days through {{ end_date|date:"F j, Y" }}.
+  </p>
+  {% endif %}
+</div>
+
+<!-- Send Results -->
+{% if results %}
+<div class="card">
+  <h2 class="section-title" style="margin-bottom:0.8rem;">
+    Send Results - {{ sent }} sent, {{ failed }} failed
+  </h2>
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Phone</th><th>Person</th><th>Event</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.phone }}</td>
+          <td>{{ r.person }}</td>
+          <td>{{ r.event }}</td>
+          <td>
+            {% if r.status == "sent" %}
+              <span style="color:var(--green,#4caf50);">Sent</span>
+            {% else %}
+              <span style="color:var(--red,#f44336);" title="{{ r.error }}">Failed</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<hr class="divider">
+
+<!-- Cron Setup Guide -->
+<div class="card">
+  <h2 class="section-title" style="margin-bottom:0.8rem;">Automatic Daily Reminders (Cron)</h2>
+  <p class="muted" style="margin-bottom:1rem;">
+    To send reminders automatically every morning, add this line to your server's crontab (<code>crontab -e</code>):
+  </p>
+  <pre style="background:var(--bg,#1a1a1a);padding:1rem;border-radius:10px;overflow-x:auto;font-size:0.9rem;color:var(--cream,#f5f0e8);">
+# Send birthday/death anniversary WhatsApp reminders daily at 8:00 AM
+0 8 * * * cd /path/to/family_tree && /path/to/venv/bin/python manage.py send_birthday_reminders >> /var/log/birthday_reminders.log 2>&1</pre>
+  <p class="muted" style="margin-top:0.8rem;">
+    For a dry-run (no messages sent, just preview): add <code>--dry-run</code> flag.
+  </p>
+  <p class="muted" style="margin-top:0.5rem;">
+    On <strong>Render.com</strong>: use a Cron Job service pointing to<br>
+    <code>python manage.py send_birthday_reminders</code> with schedule <code>0 8 * * *</code>
+  </p>
+</div>
+{% endblock %}

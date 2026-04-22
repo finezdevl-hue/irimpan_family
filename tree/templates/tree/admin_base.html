@@ -176,7 +176,8 @@
       <div class="admin-nav-group">
         <span class="admin-nav-label">Messaging</span>
         {% if can_manage_whatsapp %}
-        <a href="{% url 'admin_whatsapp_broadcast' %}">WhatsApp</a>
+        <a href="{% url 'admin_whatsapp_broadcast' %}">WhatsApp Broadcast</a>
+        <a href="{% url 'admin_send_reminders' %}">🎂 Birthday Reminders</a>
         {% else %}
         <div class="admin-nav-item-disabled">WhatsApp<small>Admin only</small></div>
         {% endif %}

@@ -58,6 +58,7 @@ urlpatterns = [
     path('admin-panel/live-stream/<int:pk>/edit/', views.admin_live_stream_edit, name='admin_live_stream_edit'),
     path('admin-panel/live-stream/<int:pk>/delete/', views.admin_live_stream_delete, name='admin_live_stream_delete'),
     path('admin-panel/committees/', views.admin_committees, name='admin_committees'),
+    path('admin-panel/send-reminders/', views.admin_send_reminders, name='admin_send_reminders'),
     path('admin-panel/committees/add/', views.admin_committee_add, name='admin_committee_add'),
     path('admin-panel/committees/<int:pk>/edit/', views.admin_committee_edit, name='admin_committee_edit'),
     path('admin-panel/committees/<int:pk>/delete/', views.admin_committee_delete, name='admin_committee_delete'),

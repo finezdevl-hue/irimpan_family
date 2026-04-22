@@ -76,7 +76,7 @@ class PersonForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'family', 'gender', 'birth_date',
                   'death_date', 'birth_place', 'email', 'phone', 'blood_group',
                   'current_address', 'living_separately', 'bio', 'photo', 'groups', 'father', 'mother', 'spouse',
-                  'has_multiple_spouses', 'additional_spouses', 'family_photo']
+                  'wedding_date', 'has_multiple_spouses', 'additional_spouses', 'family_photo']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'First name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Last name'}),
@@ -95,6 +95,7 @@ class PersonForm(forms.ModelForm):
             'father': forms.Select(attrs={'class': 'form-input'}),
             'mother': forms.Select(attrs={'class': 'form-input'}),
             'spouse': forms.Select(attrs={'class': 'form-input'}),
+            'wedding_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
             'has_multiple_spouses': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
             'additional_spouses': forms.SelectMultiple(attrs={'class': 'form-input'}),
         }
@@ -107,6 +108,7 @@ class PersonForm(forms.ModelForm):
             'current_address': 'Current Address',
             'living_separately': 'Living Separately',
             'groups': 'Groups',
+            'wedding_date': 'Wedding Date',
             'has_multiple_spouses': 'Multiple Spouses',
             'additional_spouses': 'Additional Spouses',
         }
@@ -140,6 +142,7 @@ class PersonForm(forms.ModelForm):
         spouse = cleaned_data.get('spouse')
         additional_spouses = cleaned_data.get('additional_spouses')
         has_multiple_spouses = cleaned_data.get('has_multiple_spouses')
+        wedding_date = cleaned_data.get('wedding_date')
 
         if spouse and self.instance.pk and spouse.pk == self.instance.pk:
             self.add_error('spouse', 'A person cannot be their own spouse.')
@@ -152,6 +155,9 @@ class PersonForm(forms.ModelForm):
 
         if additional_spouses and not has_multiple_spouses:
             self.add_error('has_multiple_spouses', 'Turn on multiple spouses to assign additional spouses.')
+
+        if wedding_date and not spouse:
+            self.add_error('wedding_date', 'Select a spouse before adding the wedding date.')
 
         return cleaned_data
 
@@ -578,9 +584,13 @@ class HeroImageForm(forms.ModelForm):
 class ClergyMemberForm(forms.ModelForm):
     class Meta:
         model = ClergyMember
-        fields = ['name', 'image']
+        fields = ['name', 'ordination_day', 'image']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Full name'}),
+            'ordination_day': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
+        }
+        labels = {
+            'ordination_day': 'Ordination Day',
         }
 
     def __init__(self, *args, **kwargs):

@@ -214,7 +214,7 @@
       {% if field.errors %}<div class="message">{{ field.errors|join:", " }}</div>{% endif %}
     </div>
     {% else %}
-    <div class="form-group"{% if field.name == 'additional_spouses' %} id="additionalSpousesAdminGroup"{% endif %}>
+    <div class="form-group"{% if field.name == 'additional_spouses' %} id="additionalSpousesAdminGroup"{% elif field.name == 'wedding_date' %} id="weddingDateAdminGroup"{% endif %}>
       <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
       {{ field }}
       {% if field.name == 'photo' %}
@@ -446,15 +446,27 @@
 
     const multipleSpousesCheckbox = document.getElementById("id_has_multiple_spouses");
     const additionalSpousesGroup = document.getElementById("additionalSpousesAdminGroup");
+    const spouseSelect = document.getElementById("id_spouse");
+    const weddingDateGroup = document.getElementById("weddingDateAdminGroup");
 
     function syncAdditionalSpousesVisibility() {
       if (!multipleSpousesCheckbox || !additionalSpousesGroup) return;
       additionalSpousesGroup.style.display = multipleSpousesCheckbox.checked ? "" : "none";
     }
 
+    function syncWeddingDateVisibility() {
+      if (!spouseSelect || !weddingDateGroup) return;
+      weddingDateGroup.style.display = spouseSelect.value ? "" : "none";
+    }
+
     if (multipleSpousesCheckbox) {
       multipleSpousesCheckbox.addEventListener("change", syncAdditionalSpousesVisibility);
       syncAdditionalSpousesVisibility();
+    }
+
+    if (spouseSelect) {
+      spouseSelect.addEventListener("change", syncWeddingDateVisibility);
+      syncWeddingDateVisibility();
     }
   })();
 </script>

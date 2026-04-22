@@ -45,6 +45,7 @@ class Person(models.Model):
         on_delete=models.SET_NULL,
         related_name='married_to'
     )
+    wedding_date = models.DateField(null=True, blank=True)
     has_multiple_spouses = models.BooleanField(default=False)
     additional_spouses = models.ManyToManyField(
         'self',
@@ -228,6 +229,7 @@ class HeroImage(models.Model):
 
 class ClergyMember(models.Model):
     name = models.CharField(max_length=200)
+    ordination_day = models.DateField(null=True, blank=True)
     image = models.ImageField(upload_to='priest/')
 
     class Meta:

@@ -20,7 +20,7 @@ WHATSAPP_MESSAGE_RESET_KEY = 'whatsapp-message-reset-offset'
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'gender', 'birth_date', 'birth_place', 'is_alive']
+    list_display = ['full_name', 'gender', 'birth_date', 'wedding_date', 'birth_place', 'is_alive']
     search_fields = ['first_name', 'last_name']
     list_filter = ['gender']
 
@@ -69,7 +69,7 @@ class HeroImageAdmin(admin.ModelAdmin):
 
 @admin.register(ClergyMember)
 class ClergyMemberAdmin(admin.ModelAdmin):
-    list_display = ['name']
+    list_display = ['name', 'ordination_day']
     search_fields = ['name']
 
 

@@ -15,6 +15,7 @@
     <thead>
       <tr>
         <th>Name</th>
+        <th>Ordination Day</th>
         <th>Preview</th>
         <th>Actions</th>
       </tr>
@@ -23,6 +24,7 @@
       {% for person in clergy_members %}
       <tr>
         <td>{{ person.name }}</td>
+        <td>{{ person.ordination_day|date:"Y-m-d"|default:"-" }}</td>
         <td>
           {% if person.image %}
           <img src="{{ person.image.url }}" alt="{{ person.name }}" style="width:90px;height:90px;object-fit:cover;border-radius:14px;border:1px solid var(--border);">
@@ -37,7 +39,7 @@
       </tr>
       {% empty %}
       <tr>
-        <td colspan="3">No clergy members added yet.</td>
+        <td colspan="4">No clergy members added yet.</td>
       </tr>
       {% endfor %}
     </tbody>

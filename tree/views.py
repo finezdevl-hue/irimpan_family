@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Case, IntegerField, Prefetch, Value, When
@@ -1880,3 +1880,177 @@ def _resolve_import_person_reference(reference_key, reference_id, created_people
         except Person.DoesNotExist:
             raise ValueError(f'Row {line_number}: {label}_id "{reference_id}" does not exist.')
     return None
+
+
+# ─── Birthday / Death-Day WhatsApp Reminder (Admin) ───────────────────────────
+
+@login_required(login_url='admin_login')
+def admin_send_reminders(request):
+    """Admin view: preview upcoming family reminders and send reminders manually."""
+    from datetime import date, timedelta
+    today = date.today()
+    try:
+        end_date = date(today.year + 1, today.month, today.day)
+    except ValueError:
+        # Handle Feb 29 on non-leap years.
+        end_date = date(today.year + 1, 2, 28)
+
+    results = []
+    sent = 0
+    failed = 0
+
+    upcoming = []
+    days_until_end_date = (end_date - today).days
+    for days_ahead in range(1, days_until_end_date + 1):
+        target = today + timedelta(days=days_ahead)
+        label = f'{days_ahead} day' if days_ahead == 1 else f'{days_ahead} days'
+        for person in Person.objects.filter(
+            birth_date__month=target.month,
+            birth_date__day=target.day,
+        ).exclude(birth_date__isnull=True):
+            upcoming.append({
+                'type': 'Birthday',
+                'person': person,
+                'date': target,
+                'label': label,
+            })
+        for person in Person.objects.filter(
+            wedding_date__month=target.month,
+            wedding_date__day=target.day,
+        ).exclude(wedding_date__isnull=True):
+            upcoming.append({
+                'type': 'Wedding Anniversary',
+                'person': person,
+                'date': target,
+                'label': label,
+            })
+        for person in Person.objects.filter(
+            death_date__month=target.month,
+            death_date__day=target.day,
+        ).exclude(death_date__isnull=True):
+            upcoming.append({
+                'type': 'Death Anniversary',
+                'person': person,
+                'date': target,
+                'label': label,
+            })
+        for clergy in ClergyMember.objects.filter(
+            ordination_day__month=target.month,
+            ordination_day__day=target.day,
+        ).exclude(ordination_day__isnull=True):
+            upcoming.append({
+                'type': 'Ordination Day',
+                'person': clergy,
+                'date': target,
+                'label': label,
+            })
+
+    upcoming.sort(key=lambda event: (event['date'], event['type'], str(event['person'])))
+
+    if request.method == 'POST':
+        from tree.management.commands.send_birthday_reminders import (
+            _normalize_phone,
+            _send_whatsapp_cloud_message,
+        )
+        import os
+
+        phone_qs = list(
+            Person.objects.filter(phone__isnull=False)
+            .exclude(phone='')
+            .values_list('phone', flat=True)
+            .distinct()
+        )
+
+        for event in upcoming:
+            person = event['person']
+            label = event['label']
+            target = event['date']
+
+            if event['type'] == 'Birthday':
+                turning_age = target.year - person.birth_date.year
+                age_str = f' (turning {turning_age})' if turning_age > 0 else ''
+                if label == '1 day':
+                    msg = (
+                        f"🎂 *Birthday Reminder – Tomorrow!*\n\n"
+                        f"*{person.first_name} {person.last_name}*{age_str} "
+                        f"has a birthday tomorrow, {target.strftime('%B %d')}. 🎉\n\nDon't forget to wish them!"
+                    )
+                else:
+                    msg = (
+                        f"🎂 *Birthday Reminder – {label} to go!*\n\n"
+                        f"*{person.first_name} {person.last_name}*{age_str} "
+                        f"has a birthday on {target.strftime('%B %d')}. 🎉\n\nMark your calendar!"
+                    )
+            elif event['type'] == 'Death Anniversary':
+                years_ago = target.year - person.death_date.year
+                ordinal = ['th','st','nd','rd','th','th','th','th','th','th'][years_ago % 10 if years_ago % 10 < 4 else 0]
+                years_str = f' ({years_ago}{ordinal} anniversary)' if years_ago > 0 else ''
+                if label == '1 day':
+                    msg = (
+                        f"🕯️ *Death Anniversary Reminder – Tomorrow*\n\n"
+                        f"Tomorrow is the death anniversary of "
+                        f"*{person.first_name} {person.last_name}*{years_str}. 🙏\n\nRemember them in your prayers."
+                    )
+                else:
+                    msg = (
+                        f"🕯️ *Death Anniversary Reminder – {label} to go*\n\n"
+                        f"In {label}, on {target.strftime('%B %d')}, is the death anniversary of "
+                        f"*{person.first_name} {person.last_name}*{years_str}. 🙏\n\nRemember them in your prayers."
+                    )
+            elif event['type'] == 'Wedding Anniversary':
+                spouse_name = person.spouse.full_name if getattr(person, 'spouse', None) else 'their spouse'
+                years_married = target.year - person.wedding_date.year
+                years_str = f' ({years_married} years)' if years_married > 0 else ''
+                if label == '1 day':
+                    msg = (
+                        f"💍 *Wedding Anniversary Reminder – Tomorrow!*\n\n"
+                        f"Tomorrow is the wedding anniversary of *{person.full_name}* and *{spouse_name}*{years_str}.\n\n"
+                        f"Please remember to send them your wishes."
+                    )
+                else:
+                    msg = (
+                        f"💍 *Wedding Anniversary Reminder – {label} to go!*\n\n"
+                        f"In {label}, on {target.strftime('%B %d')}, *{person.full_name}* and *{spouse_name}* celebrate their wedding anniversary{years_str}.\n\n"
+                        f"Please remember to send them your wishes."
+                    )
+            else:
+                years_served = target.year - person.ordination_day.year
+                years_str = f' ({years_served} years)' if years_served > 0 else ''
+                if label == '1 day':
+                    msg = (
+                        f"✝️ *Ordination Day Reminder – Tomorrow!*\n\n"
+                        f"Tomorrow is the ordination day of *{person.name}*{years_str}.\n\n"
+                        f"Keep them in your prayers and wishes."
+                    )
+                else:
+                    msg = (
+                        f"✝️ *Ordination Day Reminder – {label} to go!*\n\n"
+                        f"In {label}, on {target.strftime('%B %d')}, *{person.name}* marks their ordination day{years_str}.\n\n"
+                        f"Keep them in your prayers and wishes."
+                    )
+
+            for raw_phone in phone_qs:
+                phone = _normalize_phone(raw_phone)
+                if not phone:
+                    continue
+                try:
+                    _send_whatsapp_cloud_message(phone, msg)
+                    sent += 1
+                    results.append({'phone': phone, 'status': 'sent', 'person': str(person), 'event': event['type']})
+                except Exception as exc:
+                    failed += 1
+                    results.append({'phone': phone, 'status': 'failed', 'error': str(exc), 'person': str(person), 'event': event['type']})
+
+        if sent or failed:
+            messages.success(request, f'Reminders sent: {sent}, Failed: {failed}.')
+        else:
+            messages.info(request, f'No upcoming events found through {end_date.strftime("%B %d, %Y")}.')
+
+    return render(request, 'tree/admin_send_reminders.html', _admin_context(
+        request,
+        end_date=end_date,
+        upcoming=upcoming,
+        results=results,
+        sent=sent,
+        failed=failed,
+    ))
